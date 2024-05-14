@@ -51,7 +51,9 @@ pmiweb/
 │
 ├── LICENSE # License
 │
-└── README.md # Project documentation
+├── README.md # Project documentation
+│
+└── requirements.txt # Required libraries
 ```
 
 ## PHP Script
