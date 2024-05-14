@@ -4,7 +4,7 @@
 1. Clone the repository:
     ```bash
     git clone https://github.com/koenweverink/pmiweb.git
-    cd pmicalculator
+    cd pmiweb
     ```
 
 2. Install the required Python packages:
@@ -32,7 +32,7 @@
 4. The result will be displayed in a modal.
 
 ## Project Structure
-
+```
 project_root/
 │
 ├── pycache/ # Compiled Python files
@@ -52,6 +52,7 @@ project_root/
 ├── LICENSE # License
 │
 └── README.md # Project documentation
+```
 
 ## PHP Script
 
