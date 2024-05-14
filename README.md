@@ -33,7 +33,7 @@
 
 ## Project Structure
 ```
-project_root/
+pmiweb/
 │
 ├── pycache/ # Compiled Python files
 │
