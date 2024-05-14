@@ -3,7 +3,7 @@
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/pmicalculator.git
+    git clone https://github.com/koenweverink/pmiweb.git
     cd pmicalculator
     ```
 
@@ -16,7 +16,7 @@
 
 ## Usage
 
-1. Open the `index.html` file in your web browser or deploy it on a local server.
+1. Open the `pmi.php` file in your web browser or deploy it on a local server.
 
 2. Fill out the form with the following inputs:
     - **Lichaamstemperatuur** (Body Temperature)
@@ -31,16 +31,47 @@
 
 4. The result will be displayed in a modal.
 
-## Files
+## Project Structure
 
-- **calc.py**: The Python script that calculates the PMI based on the provided inputs.
-- **pmi.php**: Handles the form submission and calls the Python script.
-- **pmistyles.css**: Contains the CSS for styling the HTML page.
-- **test_calc.py**: Contains the test cases for `calc.py`.
+project_root/
+│
+├── pycache/ # Compiled Python files
+│
+├── src/ # Source files
+│ ├── calc.py # Python source code for PMI calculation
+│ └── pmi.php # PHP script handling form submission and calling the Python script
+│
+├── tests/ # Test files
+│ └── test_calc.py # Python test code for calc.py
+│
+├── styles/ # CSS and other styling files
+│ └── pmistyles.css # CSS for the project
+│
+├── index.html # HTML file containing the form and modal for displaying results
+│
+├── LICENSE # License
+│
+└── README.md # Project documentation
 
 ## PHP Script
 
 The PHP script (`pmi.php`) handles the form submission and executes the `calc.py` Python script with the provided input values. The results are displayed in a modal on the HTML page.
+
+## calc.py
+
+The `calc.py` script is responsible for calculating the PMI based on the provided parameters. It uses a set of predefined factors and weight thresholds to determine the PMI in hours. The script takes the following command-line arguments:
+
+```bash
+python calc.py <cover> <surfact> <t_rectum_c> <t_ambient_c> <body_wt_kg> <date> <time>
+```
+
+### Functions
+- calc_pmi(cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg): Calculates the PMI based on the given conditions and returns the PMI in hours.
+- get_right_side(t_ambient_c, bigB, f): Helper function to compute the right side of the PMI equation based on temperature and a factor.
+- get_corrective_factor(cover, surFact): Retrieves the corrective factor based on clothing and environment.
+- get_uncertainty(t_ambient_c, body_wt_kg, best_time, cover, surFact): Calculates the uncertainty based on the ambient temperature, body weight, and other factors.
+- get_weight_category(wt): Retrieves the weight category based on the body weight.
+- get_times(pmi, uncertainty, date, time): Calculates the time intervals based on PMI and uncertainty, returning the estimated time of the event.
 
 ## JavaScript
 
@@ -58,4 +89,4 @@ Feel free to open issues or submit pull requests for improvements or bug fixes.
 
 ## Authors
 
-- Your Name - [Your GitHub](https://github.com/yourusername)
+- Koen Weverink - [Your GitHub](https://github.com/koenweverink)
