@@ -1,5 +1,12 @@
-import unittest
-from src.calc import PMICalculator
+import unittest, sys, os
+
+current_dir = os.path.dirname(__file__)  # Gets the directory of the current file
+parent_dir = os.path.dirname(current_dir)  # Moves up to the parent directory
+src_path = os.path.join(parent_dir, 'src')  # Specifies the src directory path
+sys.path.append(src_path)
+
+
+from calc import PMICalculator
 
 class TestPMICalculator(unittest.TestCase):
     def setUp(self):

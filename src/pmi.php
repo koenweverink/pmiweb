@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>PMI Calculator</title>
-    <link rel="stylesheet" type="text/css" href="pmistyles.css">
+    <link rel="stylesheet" type="text/css" href="../styles/pmistyles.css">
     <script>
         // When the user clicks on <span> (x), close the modal
         function closeModal() {
@@ -40,7 +40,11 @@
             Omgevingsfactoren: 
             <select name="dropdown2">
                 <option value="Droog lichaam binnen" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Droog lichaam binnen') ? 'selected' : ''; ?>>Droog lichaam, binnen</option>
-                <!-- Additional options similarly... -->
+                <option value="Droog lichaam buiten" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Droog lichaam buiten') ? 'selected' : ''; ?>>Droog lichaam, buiten</option>
+                <option value="Nat lichaam binnen" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Nat lichaam binnen') ? 'selected' : ''; ?>>Nat lichaam, binnen</option>
+                <option value="Nat lichaam buiten" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Nat lichaam buiten') ? 'selected' : ''; ?>>Nat lichaam, buiten</option>
+                <option value="Stilstaand water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stilstaand water') ? 'selected' : ''; ?>>Stilstaand water</option>
+                <option value="Stromend water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stromend water') ? 'selected' : ''; ?>>Stromend water</option>
             </select><br>
             Date: <input type="date" name="date" value="<?php echo isset($_POST['date']) ? $_POST['date'] : ''; ?>"><br>
             Time: <input type="time" name="time" value="<?php echo isset($_POST['time']) ? $_POST['time'] : ''; ?>"><br>
