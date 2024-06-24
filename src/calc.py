@@ -2,9 +2,6 @@ import math, sys, datetime
 
 class PMICalculator:
     def __init__(self):
-        """
-        Initializes the PMICalculator with predefined factors and weight thresholds.
-        """
         self.factors = {
             'Droog lichaam, binnen': {
                 'Naakt': 1.0,
@@ -89,9 +86,6 @@ class PMICalculator:
         }
         
     def calc_pmi(self, cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg):
-        """
-        Calculates the PMI based on given conditions and returns the PMI in hours.
-        """
         if t_ambient_c > t_rectum_c:
             return "Error: De lichaamstemperatuur is lager dan de omgevingstemperatuur"
         
@@ -103,7 +97,8 @@ class PMICalculator:
         bigB = (-1.2815 * (corrective_factor * body_wt_kg) ** -0.625 + 0.0284)
 
         best_time = 0.0
-        for proposed_time in (i * 0.1 for i in range(1000)):  # up to 100 minutes, in 0.1 minute increments
+        for proposed_time in range(0, 600, 10):  # up to 600 minutes, in 10 minute increments
+            proposed_time = proposed_time / 60  # convert minutes to hours
             if abs(left_side - self.get_right_side(t_ambient_c, bigB, proposed_time)) < abs(left_side - self.get_right_side(t_ambient_c, bigB, best_time)):
                 best_time = proposed_time
 
@@ -111,13 +106,10 @@ class PMICalculator:
         if uncertainty == 69:
             return "Error: Er is een hoge mate van onzekerheid."
 
-        return int(round(best_time, 2))
+        return int(round(best_time * 60))  # convert hours back to minutes
     
 
     def get_right_side(self, t_ambient_c, bigB, f):
-        """
-        Helper function to compute the right side of the PMI equation based on temperature and a factor.
-        """
         if t_ambient_c <= 23:
             return 1.25 * math.exp(bigB * f) - 0.25 * math.exp(5 * bigB * f)
         else:
@@ -125,9 +117,6 @@ class PMICalculator:
 
 
     def get_corrective_factor(self, cover, surFact):
-        """
-        Retrieves the corrective factor based on clothing and environment.
-        """
         return self.factors.get(surFact, {}).get(cover, 1.0)
     
 
@@ -153,17 +142,13 @@ class PMICalculator:
         for weight, times in sorted((k, v) for k, v in self.weight_thresholds.items() if isinstance(k, int)):
             if wt <= weight:
                 return times
-        # Return the default value if no other weight thresholds match
         return self.weight_thresholds['default']
     
     def get_times(self, pmi, uncertainty, date, time):
-        """
-        Calculates the time intervals based on PMI and uncertainty, returning the estimated time of event.
-        """
         try:
             datetime_object = datetime.datetime.strptime(date + ' ' + time, '%Y-%m-%d %H:%M')
-            pmi_delta = datetime.timedelta(hours=pmi)
-            uncertainty_delta = datetime.timedelta(hours=uncertainty)
+            pmi_delta = datetime.timedelta(minutes=pmi)
+            uncertainty_delta = datetime.timedelta(minutes=uncertainty)
 
             time_calculated = datetime_object - pmi_delta
             time_plus_uncertainty = time_calculated + uncertainty_delta
@@ -201,5 +186,12 @@ if __name__ == '__main__':
         uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, pmi, cover, surfact)
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
-            print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} uur geleden)")
+            print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} minuten geleden)")
             print("Met onzekerheidsbereik: {} tot {}".format(interval[2], interval[1]))
+            B_value = -1.2815 * (calc.get_corrective_factor(cover, surfact) * body_wt_kg) ** -0.625 + 0.0284
+            print(f"B: {B_value}")
+            print(f"T_R: {t_rectum_c}")
+            print(f"T_O: {t_ambient_c}")
+            print(f"Correctiefactor: {calc.get_corrective_factor(cover, surfact)}")
+            print(f"Lichaamsgewicht: {body_wt_kg}")
+            print(f"Formula: {'below' if t_rectum_c <= 23 else 'above'}")

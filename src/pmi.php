@@ -16,8 +16,7 @@
                 modal.style.display = "none";
             }
         }
-        </script>
-
+    </script>
 </head>
 <body>
     <div class="container">
@@ -46,8 +45,8 @@
                 <option value="Stilstaand water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stilstaand water') ? 'selected' : ''; ?>>Stilstaand water</option>
                 <option value="Stromend water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stromend water') ? 'selected' : ''; ?>>Stromend water</option>
             </select><br>
-            Date: <input type="date" name="date" value="<?php echo isset($_POST['date']) ? $_POST['date'] : ''; ?>"><br>
-            Time: <input type="time" name="time" value="<?php echo isset($_POST['time']) ? $_POST['time'] : ''; ?>"><br>
+            Datum: <input type="date" name="date" value="<?php echo isset($_POST['date']) ? $_POST['date'] : ''; ?>"><br>
+            Tijd: <input type="time" name="time" value="<?php echo isset($_POST['time']) ? $_POST['time'] : ''; ?>"><br>
             <input type="submit" value="Submit">
         </form>
 
@@ -87,11 +86,12 @@
                                 foreach ($outputLines as $line) {
                                     if (trim($line)) {  // Check if the line is not empty
                                         // Correcting duplicate labels in the output
-                                        $line = str_replace("PMI: PMI:", "PMI:", $line);
-                                        // Output each line inside a paragraph
-                                        echo "<p>" . htmlspecialchars($line) . "</p>";
+                                        if (strpos($line, 'Geschatte tijd van overlijden:') !== false || strpos($line, 'Met onzekerheidsbereik:') !== false) {
+                                            echo "<p>" . htmlspecialchars($line) . "</p>";
+                                        }
                                     }
                                 }
+                                echo '<button onclick="window.location.href=\'calculations.php?cover=' . urlencode($dropdown1) . '&surfact=' . urlencode($dropdown2) . '&t_rectum_c=' . urlencode($number1) . '&t_ambient_c=' . urlencode($number2) . '&body_wt_kg=' . urlencode($number3) . '&date=' . urlencode($date) . '&time=' . urlencode($time) . '\'">Bekijk Berekeningen</button>';
                             } else {
                                 echo "<p>Geen resultaten om weer te geven.</p>";
                             }
@@ -106,6 +106,6 @@
         if (isset($output) && !empty($output)) {
             echo "<script>document.getElementById('resultsModal').style.display = 'block';</script>";
         }
-        ?>
+    ?>
 </body>
 </html>
