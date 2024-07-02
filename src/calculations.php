@@ -81,7 +81,7 @@
         <h1>Gebruikte Variabelen en Berekeningen</h1>
         <div class="results-container">
             <?php
-            if (isset($_GET['cover']) && isset($_GET['surfact']) && isset($_GET['t_rectum_c']) && isset($_GET['t_ambient_c']) && isset($_GET['body_wt_kg']) && isset($_GET['date']) && isset($_GET['time'])) {
+            if (isset($_GET['cover']) && isset($_GET['surfact']) && isset($_GET['t_rectum_c']) && isset($_GET['t_ambient_c']) && isset($_GET['body_wt_kg']) && isset($_GET['date']) && isset($_GET['time']) && isset($_GET['ondergrond'])) {
                 $cover = $_GET['cover'];
                 $surfact = $_GET['surfact'];
                 $t_rectum_c = $_GET['t_rectum_c'];
@@ -89,12 +89,14 @@
                 $body_wt_kg = $_GET['body_wt_kg'];
                 $date = $_GET['date'];
                 $time = $_GET['time'];
+                $ondergrond = $_GET['ondergrond'];
 
                 echo '<div class="result-item"><span>Lichaamstemperatuur: </span>' . htmlspecialchars($t_rectum_c) . '°</div>';
                 echo '<div class="result-item"><span>Omgevingstemperatuur: </span>' . htmlspecialchars($t_ambient_c) . '°</div>';
                 echo '<div class="result-item"><span>Lichaamsgewicht: </span>' . htmlspecialchars($body_wt_kg) . 'kg</div>';
                 echo '<div class="result-item"><span>Lichaamsbedekking: </span>' . htmlspecialchars($cover) . '</div>';
                 echo '<div class="result-item"><span>Omgevingsfactoren: </span>' . htmlspecialchars($surfact) . '</div>';
+                echo '<div class="result-item"><span>Ondergrond: </span>' . htmlspecialchars($ondergrond) . '</div>';
                 echo '<div class="result-item"><span>Datum en tijd van berekenen: </span>' . htmlspecialchars($date . ' ' . $time) . '</div>';
 
                 $command = escapeshellcmd("python calc.py " . 
@@ -104,11 +106,12 @@
                             escapeshellarg($t_ambient_c) . " " . 
                             escapeshellarg($body_wt_kg) . " " . 
                             escapeshellarg($date) . " " . 
-                            escapeshellarg($time));
+                            escapeshellarg($time) . " " . 
+                            escapeshellarg($ondergrond));
                 $output = shell_exec($command);
                 if (!empty($output)) {
                     $outputLines = explode("\n", $output);
-                    $B = $TR = $TO = $f = $M = $formula = null;
+                    $B = $TR = $TO = $f = $M = $formula = $correction = null;
                     $time_of_death = $uncertainty_start = $uncertainty_end = null;
                     foreach ($outputLines as $line) {
                         if (strpos($line, 'Geschatte tijd van overlijden:') !== false) {
@@ -127,6 +130,7 @@
                             $TO = floatval(substr($line, 5));
                         } elseif (strpos($line, 'Correctiefactor:') !== false) {
                             $f = floatval(substr($line, 17));
+                            $correction = $f;
                         } elseif (strpos($line, 'Lichaamsgewicht:') !== false) {
                             $M = floatval(substr($line, 16));
                         } elseif (strpos($line, 'Formula:') !== false) {
@@ -140,6 +144,7 @@
                     }
 
                     if ($B !== null && $TR !== null && $TO !== null && $f !== null && $M !== null && $formula !== null) {
+                        echo '<div class="result-item"><span>Gebruikte correctiefactor: </span>' . htmlspecialchars($correction) . '</div>';
                         echo '<div class="equation">';
                         echo '<span><b>Berekening B:</b></span>';
                         echo '<span>\\( B = 1.2815 \cdot (f \cdot M)^{-0.625} + 0.0284 \\)</span>';

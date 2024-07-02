@@ -3,6 +3,39 @@
 <head>
     <title>PMI Calculator</title>
     <link rel="stylesheet" type="text/css" href="../styles/pmistyles.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
     <script>
         // When the user clicks on <span> (x), close the modal
         function closeModal() {
@@ -32,7 +65,7 @@
                 <option value="Een of twee dikke lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Een of twee dikke lagen') ? 'selected' : ''; ?>>Een of twee dikke lagen</option>
                 <option value="Twee of drie lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Twee of drie lagen') ? 'selected' : ''; ?>>Twee of drie lagen</option>
                 <option value="Drie of vier lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Drie of vier lagen') ? 'selected' : ''; ?>>Drie of vier lagen</option>
-                <option value="Meer lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Meer lagen') ? 'selected' : ''; ?>>Meer Lagen</option>
+                <option value="Meer lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Meer lagen') ? 'selected' : ''; ?>>Meer lagen</option>
                 <option value="Licht beddengoed" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Licht beddengoed') ? 'selected' : ''; ?>>Licht beddengoed</option>
                 <option value="Zwaar beddengoed" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Zwaar beddengoed') ? 'selected' : ''; ?>>Zwaar beddengoed</option>
             </select><br>
@@ -45,6 +78,12 @@
                 <option value="Stilstaand water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stilstaand water') ? 'selected' : ''; ?>>Stilstaand water</option>
                 <option value="Stromend water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stromend water') ? 'selected' : ''; ?>>Stromend water</option>
             </select><br>
+            Ondergrond:
+            <select name="ondergrond" required>
+                <option value="Zware vulling">Zware vulling</option>
+                <option value="Matras, dik tapijt of vloerkleed">Matras, dik tapijt of vloerkleed</option>
+                <option value="Beton, steen, tegels">Beton, steen, tegels</option>
+            </select>
             Datum: <input type="date" name="date" value="<?php echo isset($_POST['date']) ? $_POST['date'] : ''; ?>"><br>
             Tijd: <input type="time" name="time" value="<?php echo isset($_POST['time']) ? $_POST['time'] : ''; ?>"><br>
             <input type="submit" value="Submit">
@@ -61,11 +100,12 @@
                         $number3 = $_POST['number3'];
                         $dropdown1 = $_POST['dropdown1'];
                         $dropdown2 = $_POST['dropdown2'];
+                        $ondergrond = $_POST['ondergrond'];
                         $date = $_POST['date'];
                         $time = $_POST['time'];
 
-                        if (empty($number1) || empty($number2) || empty($number3) || empty($dropdown1) || empty($dropdown2) || empty($date) || empty($time)){
-                            echo "Vul lichaamstemperatuur, omgevingstemperatuur, lichaamsgewicht, lichaamsbedekking, omgevingsfactoren, datum en tijd in.";
+                        if (empty($number1) || empty($number2) || empty($number3) || empty($dropdown1) || empty($dropdown2) || empty($date) || empty($time) || empty($ondergrond)){
+                            echo "Vul alle velden in.";
                         } else {
                             $command = escapeshellcmd("python calc.py " . 
                                         escapeshellarg($dropdown1) . " " . 
@@ -74,7 +114,8 @@
                                         escapeshellarg($number2) . " " . 
                                         escapeshellarg($number3) . " " . 
                                         escapeshellarg($date) . " " . 
-                                        escapeshellarg($time));
+                                        escapeshellarg($time) . " " . 
+                                        escapeshellarg($ondergrond));
                             $output = shell_exec($command);
                             if (!empty($output)) {
                                 // Displaying output in modal if not empty
@@ -91,7 +132,7 @@
                                         }
                                     }
                                 }
-                                echo '<button onclick="window.location.href=\'calculations.php?cover=' . urlencode($dropdown1) . '&surfact=' . urlencode($dropdown2) . '&t_rectum_c=' . urlencode($number1) . '&t_ambient_c=' . urlencode($number2) . '&body_wt_kg=' . urlencode($number3) . '&date=' . urlencode($date) . '&time=' . urlencode($time) . '\'">Bekijk Berekeningen</button>';
+                                echo '<button onclick="window.location.href=\'calculations.php?cover=' . urlencode($dropdown1) . '&surfact=' . urlencode($dropdown2) . '&t_rectum_c=' . urlencode($number1) . '&t_ambient_c=' . urlencode($number2) . '&body_wt_kg=' . urlencode($number3) . '&date=' . urlencode($date) . '&time=' . urlencode($time) . '&ondergrond=' . urlencode($ondergrond) . '\'">Bekijk Berekeningen</button>';
                             } else {
                                 echo "<p>Geen resultaten om weer te geven.</p>";
                             }

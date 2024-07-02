@@ -1,4 +1,6 @@
-import math, sys, datetime
+import math
+import sys
+import datetime
 
 class PMICalculator:
     def __init__(self):
@@ -65,6 +67,23 @@ class PMICalculator:
             },
         }
 
+        self.underlay_adjustments = {
+            'Zware vulling': {
+                'Naakt': 1.3,
+                'Een of twee dunne lagen': 0.3,
+                'Een of twee dikke lagen': 0.1,
+            },
+            'Matras, dik tapijt of vloerkleed': {
+                'Naakt': 1.15,
+                'default': 0.1,
+            },
+            'Beton, steen, tegels': {
+                'Naakt': -0.75,
+                'Een of twee dunne lagen': -0.2,
+                'Een of twee dikke lagen': -0.1,
+            },
+        }
+
         self.weight_thresholds = {
             10: (3, 5, 7),
             15: (4, 4.2, 9),
@@ -85,14 +104,14 @@ class PMICalculator:
             'default': (20, 50, 90)
         }
         
-    def calc_pmi(self, cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg):
+    def calc_pmi(self, cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay):
         if t_ambient_c > t_rectum_c:
             return "Error: De lichaamstemperatuur is lager dan de omgevingstemperatuur"
         
         if body_wt_kg < 11:
             return "Error: Er is een hoge mate van onzekerheid door het lage lichaamsgewicht."
 
-        corrective_factor = self.get_corrective_factor(cover, surfact)
+        corrective_factor = self.get_corrective_factor(cover, surfact, underlay)
         left_side = (t_rectum_c - t_ambient_c) / (37.2 - t_ambient_c)
         bigB = (-1.2815 * (corrective_factor * body_wt_kg) ** -0.625 + 0.0284)
 
@@ -106,7 +125,7 @@ class PMICalculator:
         if uncertainty == 69:
             return "Error: Er is een hoge mate van onzekerheid."
 
-        return int(round(best_time * 60))  # convert hours back to minutes
+        return int(round(best_time * 60)), corrective_factor  # convert hours back to minutes
     
 
     def get_right_side(self, t_ambient_c, bigB, f):
@@ -116,8 +135,14 @@ class PMICalculator:
             return 1.11 * math.exp(bigB * f) - 0.11 * math.exp(10 * bigB * f)
 
 
-    def get_corrective_factor(self, cover, surFact):
-        return self.factors.get(surFact, {}).get(cover, 1.0)
+    def get_corrective_factor(self, cover, surFact, underlay):
+        base_factor = self.factors.get(surFact, {}).get(cover, 1.0)
+        underlay_factors = self.underlay_adjustments.get(underlay, {})
+        if cover in underlay_factors:
+            if cover in ['Naakt'] and underlay in ['Zware vulling', 'Matras, dik tapijt of vloerkleed']:
+                return underlay_factors[cover]  # Use the set value
+            return base_factor + underlay_factors[cover]
+        return base_factor + underlay_factors.get('default', 0)
     
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
@@ -161,8 +186,8 @@ class PMICalculator:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 8:
-        print("Usage: python script.py <cover> <surfact> <t_rectum_c> <t_ambient_c> <body_wt_kg> <date> <time>")
+    if len(sys.argv) < 9:
+        print("Usage: python script.py <cover> <surfact> <t_rectum_c> <t_ambient_c> <body_wt_kg> <date> <time> <underlay>")
         sys.exit(1)
 
     cover = sys.argv[1]
@@ -177,21 +202,23 @@ if __name__ == '__main__':
 
     date = sys.argv[6]
     time = sys.argv[7]
+    underlay = sys.argv[8]
 
     calc = PMICalculator()
-    pmi = calc.calc_pmi(cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg)
-    if isinstance(pmi, str):
-        print(pmi)
+    result = calc.calc_pmi(cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay)
+    if isinstance(result, str):
+        print(result)
     else:
+        pmi, corrective_factor = result
         uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, pmi, cover, surfact)
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
             print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} minuten geleden)")
             print("Met onzekerheidsbereik: {} tot {}".format(interval[2], interval[1]))
-            B_value = -1.2815 * (calc.get_corrective_factor(cover, surfact) * body_wt_kg) ** -0.625 + 0.0284
+            B_value = -1.2815 * (calc.get_corrective_factor(cover, surfact, underlay) * body_wt_kg) ** -0.625 + 0.0284
             print(f"B: {B_value}")
             print(f"T_R: {t_rectum_c}")
             print(f"T_O: {t_ambient_c}")
-            print(f"Correctiefactor: {calc.get_corrective_factor(cover, surfact)}")
+            print(f"Correctiefactor: {corrective_factor}")
             print(f"Lichaamsgewicht: {body_wt_kg}")
             print(f"Formula: {'below' if t_rectum_c <= 23 else 'above'}")
