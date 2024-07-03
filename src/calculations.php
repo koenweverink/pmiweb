@@ -111,40 +111,35 @@
                 $output = shell_exec($command);
                 if (!empty($output)) {
                     $outputLines = explode("\n", $output);
-                    $B = $TR = $TO = $f = $M = $formula = $correction = null;
-                    $time_of_death = $uncertainty_start = $uncertainty_end = null;
+                    $isError = false;
+                    $B = $TR = $TO = $f = $M = $formula = null;
                     foreach ($outputLines as $line) {
-                        if (strpos($line, 'Geschatte tijd van overlijden:') !== false) {
-                            $time_of_death = htmlspecialchars($line);
-                        } elseif (strpos($line, 'Met onzekerheidsbereik:') !== false) {
-                            $uncertainty = explode(" tot ", substr($line, 24));
-                            $uncertainty_start = htmlspecialchars($uncertainty[0]);
-                            $uncertainty_end = htmlspecialchars($uncertainty[1]);
-                        }
-                        if (strpos($line, 'B:') !== false) {
-                            $B = floatval(substr($line, 3));
-                            $B_rounded = round($B, 3); // Round B to 3 decimal places
-                        } elseif (strpos($line, 'T_R:') !== false) {
-                            $TR = floatval(substr($line, 5));
-                        } elseif (strpos($line, 'T_O:') !== false) {
-                            $TO = floatval(substr($line, 5));
-                        } elseif (strpos($line, 'Correctiefactor:') !== false) {
-                            $f = floatval(substr($line, 17));
-                            $correction = $f;
-                        } elseif (strpos($line, 'Lichaamsgewicht:') !== false) {
-                            $M = floatval(substr($line, 16));
-                        } elseif (strpos($line, 'Formula:') !== false) {
-                            $formula = trim(substr($line, 8));
+                        if (trim($line)) {
+                            if (strpos($line, 'Error:') !== false) {
+                                $isError = true;
+                                echo '<div class="result-item">' . htmlspecialchars($line) . '</div>';
+                            }
+                            if (!$isError) {
+                                if (strpos($line, 'B:') !== false) {
+                                    $B = floatval(substr($line, 3));
+                                    $B_rounded = round($B, 3); // Round B to 3 decimal places
+                                } elseif (strpos($line, 'T_R:') !== false) {
+                                    $TR = floatval(substr($line, 5));
+                                } elseif (strpos($line, 'T_O:') !== false) {
+                                    $TO = floatval(substr($line, 5));
+                                } elseif (strpos($line, 'Correctiefactor:') !== false) {
+                                    $f = floatval(substr($line, 17));
+                                    echo '<div class="result-item"><span>Gebruikte correctiefactor: </span>' . htmlspecialchars($f) . '</div>';
+                                } elseif (strpos($line, 'Lichaamsgewicht:') !== false) {
+                                    $M = floatval(substr($line, 16));
+                                } elseif (strpos($line, 'Formula:') !== false) {
+                                    $formula = trim(substr($line, 8));
+                                }
+                            }
                         }
                     }
 
-                    if ($time_of_death !== null && $uncertainty_start !== null && $uncertainty_end !== null) {
-                        echo '<div class="result-item"><span>' . $time_of_death . '</span></div>';
-                        echo '<div class="result-item"><span>Met onzekerheidsbereik: ' . $uncertainty_start . ' tot ' . $uncertainty_end . '</span></div>';
-                    }
-
-                    if ($B !== null && $TR !== null && $TO !== null && $f !== null && $M !== null && $formula !== null) {
-                        echo '<div class="result-item"><span>Gebruikte correctiefactor: </span>' . htmlspecialchars($correction) . '</div>';
+                    if (!$isError && $B !== null && $TR !== null && $TO !== null && $f !== null && $M !== null && $formula !== null) {
                         echo '<div class="equation">';
                         echo '<span><b>Berekening B:</b></span>';
                         echo '<span>\\( B = 1.2815 \cdot (f \cdot M)^{-0.625} + 0.0284 \\)</span>';
@@ -154,11 +149,11 @@
                         echo '<div class="equation">';
                         echo '<span><b>Berekening PMI:</b></span>';
                         if ($formula == "below") {
-                            echo '<span>\\( \\frac{T_R - T_O}{37.2 - T_O} = 1.25e^{B \cdot t} - 0.25e^{5 \cdot B \cdot t} \\)</span>';
-                            echo '<span>\\( \\frac{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}{37.2 - ' . htmlspecialchars($TO) . '} = 1.25e^{' . htmlspecialchars($B_rounded) . ' \cdot t} - 0.25e^{' . htmlspecialchars(5*$B_rounded) . ' \cdot t} \\)</span>';
+                            echo '<span>\\( \\frac{{T_R - T_O}}{{37.2 - T_O}} = 1.25e^{{B \cdot t}} - 0.25e^{{5 \cdot B \cdot t}} \\)</span>';
+                            echo '<span>\\( \\frac{{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}}{{37.2 - ' . htmlspecialchars($TO) . '}} = 1.25e^{' . htmlspecialchars($B_rounded) . ' \cdot t} - 0.25e^{' . htmlspecialchars(5*$B_rounded) . ' \cdot t} \\)</span>';
                         } else {
-                            echo '<span>\\( \\frac{T_R - T_O}{37.2 - T_O} = 1.11e^{B \cdot t} - 0.11e^{10 \cdot B \cdot t} \\)</span>';
-                            echo '<span>\\( \\frac{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}{37.2 - ' . htmlspecialchars($TO) . '} = 1.11e^{' . htmlspecialchars($B_rounded) . ' \cdot t} - 0.11e^{' . htmlspecialchars(10*$B_rounded) . ' \cdot t} \\)</span>';
+                            echo '<span>\\( \\frac{{T_R - T_O}}{{37.2 - T_O}} = 1.11e^{{B \cdot t}} - 0.11e^{{10 \cdot B \cdot t}} \\)</span>';
+                            echo '<span>\\( \\frac{{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}}{{37.2 - ' . htmlspecialchars($TO) . '}} = 1.11e^{' . htmlspecialchars($B_rounded) . ' \cdot t} - 0.11e^{' . htmlspecialchars(10*$B_rounded) . ' \cdot t} \\)</span>';
                         }
                         echo '</div>';
                     }
@@ -173,13 +168,10 @@
         <button onclick="window.history.back()">Terug</button>
     </div>
     <script>
-        function updateMathJax() {
+        document.addEventListener("DOMContentLoaded", function() {
             if (typeof MathJax !== 'undefined') {
                 MathJax.typesetPromise();
             }
-        }
-        document.addEventListener("DOMContentLoaded", function() {
-            updateMathJax();  // Ensure MathJax processes content on page load
         });
     </script>
 </body>

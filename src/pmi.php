@@ -37,12 +37,10 @@
         }
     </style>
     <script>
-        // When the user clicks on <span> (x), close the modal
         function closeModal() {
             document.getElementById('resultsModal').style.display = "none";
         }
 
-        // When the user clicks anywhere outside of the modal, close it
         window.onclick = function(event) {
             var modal = document.getElementById('resultsModal');
             if (event.target == modal) {
@@ -80,6 +78,7 @@
             </select><br>
             Ondergrond:
             <select name="ondergrond" required>
+                <option value="Willekeurig">Willekeurig</option>
                 <option value="Zware vulling">Zware vulling</option>
                 <option value="Matras, dik tapijt of vloerkleed">Matras, dik tapijt of vloerkleed</option>
                 <option value="Beton, steen, tegels">Beton, steen, tegels</option>
@@ -118,16 +117,17 @@
                                         escapeshellarg($ondergrond));
                             $output = shell_exec($command);
                             if (!empty($output)) {
-                                // Displaying output in modal if not empty
                                 echo "<script>document.getElementById('resultsModal').style.display = 'block';</script>";
                     
-                                // Processing each line of output
                                 $outputLines = explode("\n", $output);
-                                echo "<h2>PMI Resultaat</h2>";  // Title for the results
+                                $isError = false;
+                                echo "<h2>PMI Resultaat</h2>";
                                 foreach ($outputLines as $line) {
-                                    if (trim($line)) {  // Check if the line is not empty
-                                        // Correcting duplicate labels in the output
-                                        if (strpos($line, 'Geschatte tijd van overlijden:') !== false || strpos($line, 'Met onzekerheidsbereik:') !== false) {
+                                    if (trim($line)) {
+                                        if (strpos($line, 'Error:') !== false) {
+                                            echo "<p>" . htmlspecialchars($line) . "</p>";
+                                            $isError = true;
+                                        } elseif (strpos($line, 'Geschatte tijd van overlijden:') !== false || strpos($line, 'Met onzekerheidsbereik:') !== false) {
                                             echo "<p>" . htmlspecialchars($line) . "</p>";
                                         }
                                     }

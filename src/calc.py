@@ -5,7 +5,7 @@ import datetime
 class PMICalculator:
     def __init__(self):
         self.factors = {
-            'Droog lichaam, binnen': {
+            'Droog lichaam binnen': {
                 'Naakt': 1.0,
                 'Een of twee dunne lagen': 1.1,
                 'Een of twee dikke lagen': 1.2,
@@ -15,7 +15,7 @@ class PMICalculator:
                 'Licht beddengoed': 1.8,
                 'Zwaar beddengoed': 2.4,
             },
-            'Droog lichaam, buiten': {
+            'Droog lichaam buiten': {
                 'Naakt': 0.75,
                 'Een of twee dunne lagen': 0.9,
                 'Een of twee dikke lagen': 0.9,
@@ -25,7 +25,7 @@ class PMICalculator:
                 'Licht beddengoed': 1.8,
                 'Zwaar beddengoed': 2.4,
             },
-            'Nat lichaam, binnen': {
+            'Nat lichaam binnen': {
                 'Naakt': 0.5,
                 'Een of twee dunne lagen': 0.8,
                 'Een of twee dikke lagen': 1.1,
@@ -35,7 +35,7 @@ class PMICalculator:
                 'Licht beddengoed': 1.2,
                 'Zwaar beddengoed': 1.2,
             },
-            'Nat lichaam, buiten': {
+            'Nat lichaam buiten': {
                 'Naakt': 0.7,
                 'Een of twee dunne lagen': 0.7,
                 'Een of twee dikke lagen': 0.9,
@@ -67,23 +67,6 @@ class PMICalculator:
             },
         }
 
-        self.underlay_adjustments = {
-            'Zware vulling': {
-                'Naakt': 1.3,
-                'Een of twee dunne lagen': 0.3,
-                'Een of twee dikke lagen': 0.1,
-            },
-            'Matras, dik tapijt of vloerkleed': {
-                'Naakt': 1.15,
-                'default': 0.1,
-            },
-            'Beton, steen, tegels': {
-                'Naakt': -0.75,
-                'Een of twee dunne lagen': -0.2,
-                'Een of twee dikke lagen': -0.1,
-            },
-        }
-
         self.weight_thresholds = {
             10: (3, 5, 7),
             15: (4, 4.2, 9),
@@ -103,11 +86,18 @@ class PMICalculator:
             180: (20, 42, 82),
             'default': (20, 50, 90)
         }
-        
+
     def calc_pmi(self, cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay):
+        self.cover = cover
+        self.surfacet = surfact
+        self.t_rectum_c = t_rectum_c
+        self.t_ambient_c = t_ambient_c
+        self.body_wt_kg = body_wt_kg
+        self.underlay = underlay
+        
         if t_ambient_c > t_rectum_c:
             return "Error: De lichaamstemperatuur is lager dan de omgevingstemperatuur"
-        
+
         if body_wt_kg < 11:
             return "Error: Er is een hoge mate van onzekerheid door het lage lichaamsgewicht."
 
@@ -116,17 +106,18 @@ class PMICalculator:
         bigB = (-1.2815 * (corrective_factor * body_wt_kg) ** -0.625 + 0.0284)
 
         best_time = 0.0
-        for proposed_time in range(0, 600, 10):  # up to 600 minutes, in 10 minute increments
-            proposed_time = proposed_time / 60  # convert minutes to hours
-            if abs(left_side - self.get_right_side(t_ambient_c, bigB, proposed_time)) < abs(left_side - self.get_right_side(t_ambient_c, bigB, best_time)):
-                best_time = proposed_time
+        while best_time < 100:  # up to 100 hours
+            if abs(left_side - self.get_right_side(t_ambient_c, bigB, best_time)) < abs(left_side - self.get_right_side(t_ambient_c, bigB, best_time + 0.1)):
+                break
+            best_time += 0.1
+
+        self.best_time = (math.ceil(best_time * 10) / 10)
 
         uncertainty = self.get_uncertainty(t_ambient_c, body_wt_kg, best_time, cover, surfact)
         if uncertainty == 69:
             return "Error: Er is een hoge mate van onzekerheid."
 
-        return int(round(best_time * 60)), corrective_factor  # convert hours back to minutes
-    
+        return int(round(best_time * 60))  # convert hours back to minutes
 
     def get_right_side(self, t_ambient_c, bigB, f):
         if t_ambient_c <= 23:
@@ -134,16 +125,30 @@ class PMICalculator:
         else:
             return 1.11 * math.exp(bigB * f) - 0.11 * math.exp(10 * bigB * f)
 
-
-    def get_corrective_factor(self, cover, surFact, underlay):
-        base_factor = self.factors.get(surFact, {}).get(cover, 1.0)
-        underlay_factors = self.underlay_adjustments.get(underlay, {})
-        if cover in underlay_factors:
-            if cover in ['Naakt'] and underlay in ['Zware vulling', 'Matras, dik tapijt of vloerkleed']:
-                return underlay_factors[cover]  # Use the set value
-            return base_factor + underlay_factors[cover]
-        return base_factor + underlay_factors.get('default', 0)
-    
+    def get_corrective_factor(self, cover, surfact, underlay):
+        base_factor = self.factors.get(surfact, {}).get(cover, 1.0)
+        if underlay == 'Willekeurig':
+            return base_factor
+        elif underlay == 'Zware vulling':
+            if cover == 'Naakt':
+                return 1.3
+            elif cover == 'Een of twee dunne lagen':
+                return base_factor + 0.3
+            else:
+                return base_factor + 0.1
+        elif underlay == 'Matras, dik tapijt of vloerkleed':
+            if cover == 'Naakt':
+                return 1.15
+            else:
+                return base_factor + 0.1
+        elif underlay == 'Beton, steen, tegels':
+            if cover == 'Naakt':
+                return base_factor - 0.75
+            elif cover == 'Een of twee dunne lagen':
+                return base_factor - 0.2
+            else:
+                return base_factor - 0.1
+        return base_factor
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
         category1, category2, category3 = self.get_weight_category(body_wt_kg)
@@ -168,7 +173,7 @@ class PMICalculator:
             if wt <= weight:
                 return times
         return self.weight_thresholds['default']
-    
+
     def get_times(self, pmi, uncertainty, date, time):
         try:
             datetime_object = datetime.datetime.strptime(date + ' ' + time, '%Y-%m-%d %H:%M')
@@ -183,7 +188,6 @@ class PMICalculator:
         except Exception as e:
             print("Error processing date/time: ", e)
             return None, None, None
-
 
 if __name__ == '__main__':
     if len(sys.argv) < 9:
@@ -205,11 +209,10 @@ if __name__ == '__main__':
     underlay = sys.argv[8]
 
     calc = PMICalculator()
-    result = calc.calc_pmi(cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay)
-    if isinstance(result, str):
-        print(result)
+    pmi = calc.calc_pmi(cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay)
+    if isinstance(pmi, str):
+        print(pmi)
     else:
-        pmi, corrective_factor = result
         uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, pmi, cover, surfact)
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
@@ -219,6 +222,6 @@ if __name__ == '__main__':
             print(f"B: {B_value}")
             print(f"T_R: {t_rectum_c}")
             print(f"T_O: {t_ambient_c}")
-            print(f"Correctiefactor: {corrective_factor}")
+            print(f"Correctiefactor: {calc.get_corrective_factor(cover, surfact, underlay)}")
             print(f"Lichaamsgewicht: {body_wt_kg}")
             print(f"Formula: {'below' if t_rectum_c <= 23 else 'above'}")
