@@ -4,6 +4,27 @@ import datetime
 
 class PMICalculator:
     def __init__(self):
+        self.correction_factors_table = {
+            4: [1.6, 2.1, 2.7, 3.5, 4.5, 5.7, 7.1, 8.8, 10.9],
+            6: [1.6, 2.1, 2.7, 3.4, 4.3, 5.3, 6.6, 8.1, 9.8],
+            8: [1.6, 2.0, 2.6, 3.3, 4.1, 5.0, 6.2, 7.5, 8.9],
+            10: [1.6, 2.0, 2.5, 3.2, 3.9, 4.8, 5.8, 7.0, 8.3],
+            20: [1.5, 1.9, 2.3, 2.8, 3.4, 4.0, 4.7, 5.5, 6.2],
+            30: [1.4, 1.8, 2.2, 2.6, 3.0, 3.5, 4.0, 4.6, 5.1],
+            40: [1.4, 1.6, 2.1, 2.5, 2.8, 3.2, 3.6, 3.9, 4.3],
+            50: [1.4, 1.6, 2.0, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8],
+            60: [1.4, 1.6, 1.8, 2.0, 2.4, 2.7, 2.9, 3.2, 3.4],
+            70: [1.3, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0],
+            80: [1.4, 1.6, 1.8, 2.0, 2.1, 2.3, 2.5, 2.7, 2.8],
+            90: [1.4, 1.6, 1.8, 1.8, 2.0, 2.2, 2.3, 2.5, 2.6],
+            100: [1.4, 1.6, 1.5, 1.8, 1.9, 2.1, 2.2, 2.3, 2.4],
+            110: [1.4, 1.4, 1.5, 1.7, 1.8, 1.9, 2.1, 2.2, 2.3],
+            120: [1.3, 1.4, 1.6, 1.6, 1.7, 1.9, 2.0, 2.0, 2.1],
+            130: [1.2, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.9, 2.0],
+            140: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.8, 1.9],
+            150: [1.2, 1.3, 1.4, 1.5, 1.6, 1.6, 1.7, 1.7, 1.9],
+        }
+
         self.factors = {
             'Droog lichaam binnen': {
                 'Naakt': 1.0,
@@ -87,6 +108,25 @@ class PMICalculator:
             'default': (20, 50, 90)
         }
 
+    def adjust_correction_factor(self, cf, body_wt_kg):
+        print(cf)
+        # get body weight closest to 10
+        weight = round(body_wt_kg, -1)
+        print(weight)
+
+        if weight == 70 or cf < 1.4:
+            return cf
+        
+        # get index of cf in 70 kg row
+        index = self.correction_factors_table[70].index(cf)
+
+
+        # get new cf for weight row
+        new_cf = self.correction_factors_table[weight][index]
+
+        return new_cf
+
+
     def calc_pmi(self, cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay):
         self.cover = cover
         self.surfacet = surfact
@@ -102,6 +142,7 @@ class PMICalculator:
             return "Error: Er is een hoge mate van onzekerheid door het lage lichaamsgewicht."
 
         corrective_factor = self.get_corrective_factor(cover, surfact, underlay)
+        adjusted_cf = self.adjust_correction_factor(corrective_factor, body_wt_kg)
         left_side = (t_rectum_c - t_ambient_c) / (37.2 - t_ambient_c)
         bigB = (-1.2815 * (corrective_factor * body_wt_kg) ** -0.625 + 0.0284)
 
@@ -126,29 +167,36 @@ class PMICalculator:
             return 1.11 * math.exp(bigB * f) - 0.11 * math.exp(10 * bigB * f)
 
     def get_corrective_factor(self, cover, surfact, underlay):
+        # Calculate the base correction factor based on the given conditions
         base_factor = self.factors.get(surfact, {}).get(cover, 1.0)
+        
+        # Adjust the correction factor based on the underlay
         if underlay == 'Willekeurig':
-            return base_factor
+            corrective_factor = base_factor
         elif underlay == 'Zware vulling':
             if cover == 'Naakt':
-                return 1.3
+                corrective_factor = 1.3
             elif cover == 'Een of twee dunne lagen':
-                return base_factor + 0.3
+                corrective_factor = base_factor + 0.3
             else:
-                return base_factor + 0.1
+                corrective_factor = base_factor + 0.1
         elif underlay == 'Matras, dik tapijt of vloerkleed':
             if cover == 'Naakt':
-                return 1.15
+                corrective_factor = 1.15
             else:
-                return base_factor + 0.1
+                corrective_factor = base_factor + 0.1
         elif underlay == 'Beton, steen, tegels':
             if cover == 'Naakt':
-                return base_factor - 0.75
+                corrective_factor = base_factor - 0.75
             elif cover == 'Een of twee dunne lagen':
-                return base_factor - 0.2
+                corrective_factor = base_factor - 0.2
             else:
-                return base_factor - 0.1
-        return base_factor
+                corrective_factor = base_factor - 0.1
+        else:
+            corrective_factor = base_factor
+
+        adjusted_cf = self.adjust_correction_factor(corrective_factor, self.body_wt_kg)
+        return adjusted_cf
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
         category1, category2, category3 = self.get_weight_category(body_wt_kg)
