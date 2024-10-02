@@ -117,15 +117,39 @@ class PMICalculator:
         if weight == 70 or cf < 1.4:
             return cf
         
-        # get index of cf in 70 kg row
-        index = self.correction_factors_table[70].index(cf)
+        # get cf in 70 kg row
+        cf_row_70kg = self.correction_factors_table[70]
+
+        try:
+            index = cf_row_70kg.index(cf)
+            new_cf = self.correction_factors_table[weight][index]
+            return new_cf
+        
+        except ValueError:
+            lower_cf, upper_cf = self.get_nearest_factors(cf, cf_row_70kg)
+
+            lower_index = cf_row_70kg.index(lower_cf)
+            upper_index = cf_row_70kg.index(upper_cf)
+
+            lower_cf_weight = self.correction_factors_table[weight][lower_index]
+            upper_cf_weight = self.correction_factors_table[weight][upper_index]
+
+            interpolated_cf = self.linear_interpolate(cf, lower_cf, upper_cf, lower_cf_weight, upper_cf_weight)
 
 
-        # get new cf for weight row
-        new_cf = self.correction_factors_table[weight][index]
-
-        return new_cf
-
+    def get_nearest_factors(self, target, values):
+        """Finds the two nearest values in the list 'values' to the given 'target' value."""
+        sorted_values = sorted(values)
+        lower = max([v for v in sorted_values if v <= target], default=sorted_values[0])
+        upper = min([v for v in sorted_values if v >= target], default=sorted_values[-1])
+        return lower, upper
+    
+    def linear_interpolate(self, x, x0, x1, y0, y1):
+        """Performs linear interpolation to estimate y at point x, given points (x0, y0) and (x1, y1)."""
+        if x1 == x0:
+            return y0  # Avoid division by zero, should not happen in normal cases
+        return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    
 
     def calc_pmi(self, cover, surfact, t_rectum_c, t_ambient_c, body_wt_kg, underlay):
         self.cover = cover
@@ -142,9 +166,15 @@ class PMICalculator:
             return "Error: Er is een hoge mate van onzekerheid door het lage lichaamsgewicht."
 
         corrective_factor = self.get_corrective_factor(cover, surfact, underlay)
-        adjusted_cf = self.adjust_correction_factor(corrective_factor, body_wt_kg)
+
+        if corrective_factor:
+            adjusted_cf = self.adjust_correction_factor(corrective_factor, body_wt_kg)
+
+        if adjusted_cf == 0:
+            return "Error: Correctiefactor is 0."
+
         left_side = (t_rectum_c - t_ambient_c) / (37.2 - t_ambient_c)
-        bigB = (-1.2815 * (corrective_factor * body_wt_kg) ** -0.625 + 0.0284)
+        bigB = (-1.2815 * (adjusted_cf * body_wt_kg) ** -0.625 + 0.0284)
 
         best_time = 0.0
         while best_time < 100:  # up to 100 hours

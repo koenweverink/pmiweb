@@ -77,11 +77,11 @@
                 <option value="Stromend water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stromend water') ? 'selected' : ''; ?>>Stromend water</option>
             </select><br>
             Ondergrond:
-            <select name="ondergrond" required>
-                <option value="Willekeurig">Willekeurig</option>
-                <option value="Zware vulling">Zware vulling</option>
-                <option value="Matras, dik tapijt of vloerkleed">Matras, dik tapijt of vloerkleed</option>
-                <option value="Beton, steen, tegels">Beton, steen, tegels</option>
+            <select name="ondergrond">
+                <option value="Willekeurig" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Willekeurig') ? 'selected' : ''; ?>>Willekeurig</option>
+                <option value="Zware vulling" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Zware vulling') ? 'selected' : ''; ?>>Zware vulling</option>
+                <option value="Matras, dik tapijt of vloerkleed" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Matras, dik tapijt of vloerkleed') ? 'selected' : ''; ?>>Matras, dik tapijt of vloerkleed</option>
+                <option value="Beton, steen, tegels" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Beton, steen, tegels') ? 'selected' : ''; ?>>Beton, steen, tegels</option>
             </select>
             Datum: <input type="date" name="date" value="<?php echo isset($_POST['date']) ? $_POST['date'] : ''; ?>"><br>
             Tijd: <input type="time" name="time" value="<?php echo isset($_POST['time']) ? $_POST['time'] : ''; ?>"><br>
@@ -106,7 +106,7 @@
                         if (empty($number1) || empty($number2) || empty($number3) || empty($dropdown1) || empty($dropdown2) || empty($date) || empty($time) || empty($ondergrond)){
                             echo "Vul alle velden in.";
                         } else {
-                            $command = escapeshellcmd("python calc.py " . 
+                            $command = escapeshellcmd("python3 calc.py " . 
                                         escapeshellarg($dropdown1) . " " . 
                                         escapeshellarg($dropdown2) . " " . 
                                         escapeshellarg($number1) . " " . 
