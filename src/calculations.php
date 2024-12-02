@@ -73,23 +73,25 @@
     </style>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script type="text/javascript" id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js">
     </script>
+
 </head>
 <body>
     <div class="container">
         <h1>Gebruikte Variabelen en Berekeningen</h1>
         <div class="results-container">
             <?php
-            if (isset($_GET['cover']) && isset($_GET['surfact']) && isset($_GET['t_rectum_c']) && isset($_GET['t_ambient_c']) && isset($_GET['body_wt_kg']) && isset($_GET['date']) && isset($_GET['time']) && isset($_GET['ondergrond'])) {
-                $cover = $_GET['cover'];
-                $surfact = $_GET['surfact'];
-                $t_rectum_c = $_GET['t_rectum_c'];
-                $t_ambient_c = $_GET['t_ambient_c'];
-                $body_wt_kg = $_GET['body_wt_kg'];
-                $date = $_GET['date'];
-                $time = $_GET['time'];
-                $ondergrond = $_GET['ondergrond'];
+                if ($_SERVER["REQUEST_METHOD"] === "POST" && 
+                    isset($_POST['dropdown1'], $_POST['dropdown2'], $_POST['number1'], $_POST['number2'], $_POST['number3'], $_POST['date'], $_POST['time'], $_POST['ondergrond'])) {
+                    $cover = $_POST['dropdown1'];
+                    $surfact = $_POST['dropdown2'];
+                    $t_rectum_c = $_POST['number1'];
+                    $t_ambient_c = $_POST['number2'];
+                    $body_wt_kg = $_POST['number3'];
+                    $date = $_POST['date'];
+                    $time = $_POST['time'];
+                    $ondergrond = $_POST['ondergrond'];
 
                 echo '<div class="result-item"><span>Lichaamstemperatuur: </span>' . htmlspecialchars($t_rectum_c) . '°</div>';
                 echo '<div class="result-item"><span>Omgevingstemperatuur: </span>' . htmlspecialchars($t_ambient_c) . '°</div>';
@@ -99,16 +101,17 @@
                 echo '<div class="result-item"><span>Ondergrond: </span>' . htmlspecialchars($ondergrond) . '</div>';
                 echo '<div class="result-item"><span>Datum en tijd van berekenen: </span>' . htmlspecialchars($date . ' ' . $time) . '</div>';
 
-                $command = escapeshellcmd("python calc.py " . 
-                            escapeshellarg($cover) . " " . 
-                            escapeshellarg($surfact) . " " . 
-                            escapeshellarg($t_rectum_c) . " " . 
-                            escapeshellarg($t_ambient_c) . " " . 
-                            escapeshellarg($body_wt_kg) . " " . 
-                            escapeshellarg($date) . " " . 
-                            escapeshellarg($time) . " " . 
-                            escapeshellarg($ondergrond));
-                $output = shell_exec($command);
+                $command = escapeshellcmd("python calc.py " .
+                    escapeshellarg($cover) . " " .
+                    escapeshellarg($surfact) . " " .
+                    escapeshellarg($t_rectum_c) . " " .
+                    escapeshellarg($t_ambient_c) . " " .
+                    escapeshellarg($body_wt_kg) . " " .
+                    escapeshellarg($date) . " " .
+                    escapeshellarg($time) . " " .
+                    escapeshellarg($ondergrond));
+                    $output = shell_exec($command);
+
                 if (!empty($output)) {
                     $outputLines = explode("\n", $output);
                     $isError = false;

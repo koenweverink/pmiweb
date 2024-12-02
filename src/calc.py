@@ -26,67 +26,74 @@ class PMICalculator:
         }
 
         self.factors = {
-            'Droog lichaam binnen': {
+            'Droge kleding en/of bedekking, stilstaande lucht': {
                 'Naakt': 1.0,
-                'Een of twee dunne lagen': 1.1,
-                'Een of twee dikke lagen': 1.2,
-                'Twee of drie lagen': 1.2,
-                'Drie of vier lagen': 1.3,
-                'Meer lagen': 1.4,
-                'Licht beddengoed': 1.8,
-                'Zwaar beddengoed': 2.4,
+                '1-2 dunne lagen': 1.1,
+                '1-2 dikkere lagen': 1.2,
+                '2-3 dunne lagen': 1.2,
+                '3-4 dunne lagen': 1.3,
+                'Meerdere dunne/dikkere lagen': 1.4,
+                'Dik beddengoed': 1.8,
+                'Dik beddengoed plus kleding': 2.4,
+                'Zeer veel dikke lagen': 3.0,
             },
-            'Droog lichaam buiten': {
+            'Droge kleding en/of bedekking, bewegende lucht': {
                 'Naakt': 0.75,
-                'Een of twee dunne lagen': 0.9,
-                'Een of twee dikke lagen': 0.9,
-                'Twee of drie lagen': 1.2,
-                'Drie of vier lagen': 1.3,
-                'Meer lagen': 1.4,
-                'Licht beddengoed': 1.8,
-                'Zwaar beddengoed': 2.4,
+                '1-2 dunne lagen': 0.9,
+                '1-2 dikkere lagen': 0.9,
+                '2-3 dunne lagen': 1.2,
+                '3-4 dunne lagen': 1.3,
+                'Meerdere dunne/dikkere lagen': 1.4,
+                'Dik beddengoed': 1.8,
+                'Dik beddengoed plus kleding': 2.4,
+                'Zeer veel dikke lagen': 3.0,
             },
-            'Nat lichaam binnen': {
+            'Natte kleding en/of bedekking, nat lichaamsoppervlak, stilstaande lucht': {
                 'Naakt': 0.5,
-                'Een of twee dunne lagen': 0.8,
-                'Een of twee dikke lagen': 1.1,
-                'Twee of drie lagen': 1.2,
-                'Drie of vier lagen': 1.2,
-                'Meer lagen': 1.2,
-                'Licht beddengoed': 1.2,
-                'Zwaar beddengoed': 1.2,
+                '1-2 dunne lagen': 0.8,
+                '1-2 dikkere lagen': 1.1,
+                '2-3 dunne lagen': 1.2,
+                '3-4 dunne lagen': 1.2,
+                'Meerdere dunne/dikkere lagen': 1.2,
+                'Dik beddengoed': 1.2,
+                'Dik beddengoed plus kleding': 1.2,
+                'Zeer veel dikke lagen': 1.2,
             },
-            'Nat lichaam buiten': {
+            'Natte kleding en/of bedekking, nat lichaamsoppervlak, bewegende lucht': {
                 'Naakt': 0.7,
-                'Een of twee dunne lagen': 0.7,
-                'Een of twee dikke lagen': 0.9,
-                'Twee of drie lagen': 0.9,
-                'Drie of vier lagen': 0.9,
-                'Meer lagen': 0.9,
-                'Licht beddengoed': 0.9,
-                'Zwaar beddengoed': 0.9,
+                '1-2 dunne lagen': 0.7,
+                '1-2 dikkere lagen': 0.9,
+                '2-3 dunne lagen': 0.9,
+                '3-4 dunne lagen': 0.9,
+                'Meerdere dunne/dikkere lagen': 0.9,
+                'Dik beddengoed': 0.9,
+                'Dik beddengoed plus kleding': 0.9,
+                'Zeer veel dikke lagen': 0.9,
             },
             'Stilstaand water': {
                 'Naakt': 0.5,
-                'Een of twee dunne lagen': 0.7,
-                'Een of twee dikke lagen': 0.8,
-                'Twee of drie lagen': 0.9,
-                'Drie of vier lagen': 1.0,
-                'Meer lagen': 1.0,
-                'Licht beddengoed': 1.0,
-                'Zwaar beddengoed': 1.0,
+                '1-2 dunne lagen': 0.7,
+                '1-2 dikkere lagen': 0.8,
+                '2-3 dunne lagen': 0.9,
+                '3-4 dunne lagen': 1.0,
+                'Meerdere dunne/dikkere lagen': 1.0,
+                'Dik beddengoed': 1.0,
+                'Dik beddengoed plus kleding': 1.0,
+                'Zeer veel dikke lagen': 1.0,
             },
             'Stromend water': {
                 'Naakt': 0.35,
-                'Een of twee dunne lagen': 0.5,
-                'Een of twee dikke lagen': 0.7,
-                'Twee of drie lagen': 0.8,
-                'Drie of vier lagen': 0.9,
-                'Meer lagen': 1.0,
-                'Licht beddengoed': 1.0,
-                'Zwaar beddengoed': 1.0,
+                '1-2 dunne lagen': 0.5,
+                '1-2 dikkere lagen': 0.7,
+                '2-3 dunne lagen': 0.8,
+                '3-4 dunne lagen': 0.9,
+                'Meerdere dunne/dikkere lagen': 1.0,
+                'Dik beddengoed': 1.0,
+                'Dik beddengoed plus kleding': 1.0,
+                'Zeer veel dikke lagen': 1.0,
             },
         }
+
 
         self.weight_thresholds = {
             10: (3, 5, 7),
@@ -109,32 +116,23 @@ class PMICalculator:
         }
 
     def adjust_correction_factor(self, cf, body_wt_kg):
-        print(cf)
-        # get body weight closest to 10
         weight = round(body_wt_kg, -1)
-        print(weight)
 
         if weight == 70 or cf < 1.4:
             return cf
-        
-        # get cf in 70 kg row
+
         cf_row_70kg = self.correction_factors_table[70]
 
         try:
             index = cf_row_70kg.index(cf)
-            new_cf = self.correction_factors_table[weight][index]
-            return new_cf
-        
+            return self.correction_factors_table[weight][index]
         except ValueError:
             lower_cf, upper_cf = self.get_nearest_factors(cf, cf_row_70kg)
-
             lower_index = cf_row_70kg.index(lower_cf)
             upper_index = cf_row_70kg.index(upper_cf)
-
             lower_cf_weight = self.correction_factors_table[weight][lower_index]
             upper_cf_weight = self.correction_factors_table[weight][upper_index]
-
-            interpolated_cf = self.linear_interpolate(cf, lower_cf, upper_cf, lower_cf_weight, upper_cf_weight)
+            return self.linear_interpolate(cf, lower_cf, upper_cf, lower_cf_weight, upper_cf_weight)
 
 
     def get_nearest_factors(self, target, values):
@@ -197,36 +195,19 @@ class PMICalculator:
             return 1.11 * math.exp(bigB * f) - 0.11 * math.exp(10 * bigB * f)
 
     def get_corrective_factor(self, cover, surfact, underlay):
-        # Calculate the base correction factor based on the given conditions
-        base_factor = self.factors.get(surfact, {}).get(cover, 1.0)
-        
-        # Adjust the correction factor based on the underlay
-        if underlay == 'Willekeurig':
-            corrective_factor = base_factor
+        base_factor = self.factors.get(surfact, {}).get(cover, None)
+        if base_factor is None:
+            raise ValueError(f"No correction factor available for cover '{cover}' with surface type '{surfact}'.")
+        if underlay == "Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt":
+            return base_factor
         elif underlay == 'Zware vulling':
-            if cover == 'Naakt':
-                corrective_factor = 1.3
-            elif cover == 'Een of twee dunne lagen':
-                corrective_factor = base_factor + 0.3
-            else:
-                corrective_factor = base_factor + 0.1
+            return base_factor + (0.3 if cover in ['Een of twee dunne lagen'] else 0.1)
         elif underlay == 'Matras, dik tapijt of vloerkleed':
-            if cover == 'Naakt':
-                corrective_factor = 1.15
-            else:
-                corrective_factor = base_factor + 0.1
+            return base_factor + (0.15 if cover == 'Naakt' else 0.1)
         elif underlay == 'Beton, steen, tegels':
-            if cover == 'Naakt':
-                corrective_factor = base_factor - 0.75
-            elif cover == 'Een of twee dunne lagen':
-                corrective_factor = base_factor - 0.2
-            else:
-                corrective_factor = base_factor - 0.1
-        else:
-            corrective_factor = base_factor
+            return base_factor - (0.75 if cover == 'Naakt' else 0.2)
+        return base_factor
 
-        adjusted_cf = self.adjust_correction_factor(corrective_factor, self.body_wt_kg)
-        return adjusted_cf
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
         category1, category2, category3 = self.get_weight_category(body_wt_kg)

@@ -52,37 +52,39 @@
 <body>
     <div class="container">
         <h1>PMI Calculator</h1>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+        <form action="calculations.php" method="post">
             Lichaamstemperatuur: <input type="number" name="number1" value="<?php echo isset($_POST['number1']) ? $_POST['number1'] : ''; ?>"><br>
             Omgevingstemperatuur: <input type="number" name="number2" value="<?php echo isset($_POST['number2']) ? $_POST['number2'] : ''; ?>"><br>
             Lichaamsgewicht: <input type="number" name="number3" value="<?php echo isset($_POST['number3']) ? $_POST['number3'] : ''; ?>"><br>
             Lichaamsbedekking: 
             <select name="dropdown1">
                 <option value="Naakt" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Naakt') ? 'selected' : ''; ?>>Naakt</option>
-                <option value="Een of twee dunne lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Een of twee dunne lagen') ? 'selected' : ''; ?>>Een of twee dunne lagen</option>
-                <option value="Een of twee dikke lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Een of twee dikke lagen') ? 'selected' : ''; ?>>Een of twee dikke lagen</option>
-                <option value="Twee of drie lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Twee of drie lagen') ? 'selected' : ''; ?>>Twee of drie lagen</option>
-                <option value="Drie of vier lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Drie of vier lagen') ? 'selected' : ''; ?>>Drie of vier lagen</option>
-                <option value="Meer lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Meer lagen') ? 'selected' : ''; ?>>Meer lagen</option>
-                <option value="Licht beddengoed" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Licht beddengoed') ? 'selected' : ''; ?>>Licht beddengoed</option>
-                <option value="Zwaar beddengoed" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Zwaar beddengoed') ? 'selected' : ''; ?>>Zwaar beddengoed</option>
+                <option value="1-2 dunne lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == '1-2 dunne lagen') ? 'selected' : ''; ?>>1-2 dunne lagen</option>
+                <option value="1-2 dikkere lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == '1-2 dikkere lagen') ? 'selected' : ''; ?>>1-2 dikkere lagen</option>
+                <option value="2-3 dunne lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == '2-3 dunne lagen') ? 'selected' : ''; ?>>2-3 dunne lagen</option>
+                <option value="3-4 dunne lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == '3-4 dunne lagen') ? 'selected' : ''; ?>>3-4 dunne lagen</option>
+                <option value="Meerdere dunne/dikkere lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Meerdere dunne/dikkere lagen') ? 'selected' : ''; ?>>Meerdere dunne/dikkere lagen</option>
+                <option value="Dik beddengoed" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Dik beddengoed') ? 'selected' : ''; ?>>Dik beddengoed</option>
+                <option value="Dik beddengoed plus kleding" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Dik beddengoed plus kleding') ? 'selected' : ''; ?>>Dik beddengoed plus kleding</option>
+                <option value="Zeer veel dikke lagen" <?php echo (isset($_POST['dropdown1']) && $_POST['dropdown1'] == 'Zeer veel dikke lagen') ? 'selected' : ''; ?>>Zeer veel dikke lagen</option>
             </select><br>
             Omgevingsfactoren: 
             <select name="dropdown2">
-                <option value="Droog lichaam binnen" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Droog lichaam binnen') ? 'selected' : ''; ?>>Droog lichaam, binnen</option>
-                <option value="Droog lichaam buiten" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Droog lichaam buiten') ? 'selected' : ''; ?>>Droog lichaam, buiten</option>
-                <option value="Nat lichaam binnen" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Nat lichaam binnen') ? 'selected' : ''; ?>>Nat lichaam, binnen</option>
-                <option value="Nat lichaam buiten" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Nat lichaam buiten') ? 'selected' : ''; ?>>Nat lichaam, buiten</option>
+                <option value="Droge kleding en/of bedekking, stilstaande lucht" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Droge kleding en/of bedekking, stilstaande lucht') ? 'selected' : ''; ?>>Droge kleding en/of bedekking, stilstaande lucht</option>
+                <option value="Droge kleding en/of bedekking, bewegende lucht" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Droge kleding en/of bedekking, bewegende lucht') ? 'selected' : ''; ?>>Droge kleding en/of bedekking, bewegende lucht</option>
+                <option value="Natte kleding en/of bedekking, nat lichaamsoppervlak, stilstaande lucht" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Natte kleding en/of bedekking, nat lichaamsoppervlak, stilstaande lucht') ? 'selected' : ''; ?>>Natte kleding en/of bedekking, nat lichaamsoppervlak, stilstaande lucht</option>
+                <option value="Natte kleding en/of bedekking, nat lichaamsoppervlak, bewegende lucht" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Natte kleding en/of bedekking, nat lichaamsoppervlak, bewegende lucht') ? 'selected' : ''; ?>>Natte kleding en/of bedekking, nat lichaamsoppervlak, bewegende lucht</option>
                 <option value="Stilstaand water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stilstaand water') ? 'selected' : ''; ?>>Stilstaand water</option>
                 <option value="Stromend water" <?php echo (isset($_POST['dropdown2']) && $_POST['dropdown2'] == 'Stromend water') ? 'selected' : ''; ?>>Stromend water</option>
             </select><br>
             Ondergrond:
             <select name="ondergrond">
-                <option value="Willekeurig" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Willekeurig') ? 'selected' : ''; ?>>Willekeurig</option>
+                <option value="Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt') ? 'selected' : ''; ?>>Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt</option>
                 <option value="Zware vulling" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Zware vulling') ? 'selected' : ''; ?>>Zware vulling</option>
                 <option value="Matras, dik tapijt of vloerkleed" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Matras, dik tapijt of vloerkleed') ? 'selected' : ''; ?>>Matras, dik tapijt of vloerkleed</option>
                 <option value="Beton, steen, tegels" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Beton, steen, tegels') ? 'selected' : ''; ?>>Beton, steen, tegels</option>
-            </select>
+            </select><br>
+
             Datum: <input type="date" name="date" value="<?php echo isset($_POST['date']) ? $_POST['date'] : ''; ?>"><br>
             Tijd: <input type="time" name="time" value="<?php echo isset($_POST['time']) ? $_POST['time'] : ''; ?>"><br>
             <input type="submit" value="Submit">
@@ -106,7 +108,7 @@
                         if (empty($number1) || empty($number2) || empty($number3) || empty($dropdown1) || empty($dropdown2) || empty($date) || empty($time) || empty($ondergrond)){
                             echo "Vul alle velden in.";
                         } else {
-                            $command = escapeshellcmd("python3 calc.py " . 
+                            $command = escapeshellcmd("python calc.py " . 
                                         escapeshellarg($dropdown1) . " " . 
                                         escapeshellarg($dropdown2) . " " . 
                                         escapeshellarg($number1) . " " . 
