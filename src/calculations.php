@@ -82,26 +82,25 @@
         <h1>Gebruikte Variabelen en Berekeningen</h1>
         <div class="results-container">
             <?php
-                if ($_SERVER["REQUEST_METHOD"] === "POST" && 
-                    isset($_POST['dropdown1'], $_POST['dropdown2'], $_POST['number1'], $_POST['number2'], $_POST['number3'], $_POST['date'], $_POST['time'], $_POST['ondergrond'])) {
-                    $cover = $_POST['dropdown1'];
-                    $surfact = $_POST['dropdown2'];
-                    $t_rectum_c = $_POST['number1'];
-                    $t_ambient_c = $_POST['number2'];
-                    $body_wt_kg = $_POST['number3'];
-                    $date = $_POST['date'];
-                    $time = $_POST['time'];
-                    $ondergrond = $_POST['ondergrond'];
+                if (isset($_REQUEST['cover'], $_REQUEST['surfact'], $_REQUEST['t_rectum_c'], $_REQUEST['t_ambient_c'], $_REQUEST['body_wt_kg'], $_REQUEST['date'], $_REQUEST['time'], $_REQUEST['ondergrond'])) {
+                    $cover       = $_REQUEST['cover'];
+                    $surfact     = $_REQUEST['surfact'];
+                    $t_rectum_c  = $_REQUEST['t_rectum_c'];
+                    $t_ambient_c = $_REQUEST['t_ambient_c'];
+                    $body_wt_kg  = $_REQUEST['body_wt_kg'];
+                    $date        = $_REQUEST['date'];
+                    $time        = $_REQUEST['time'];
+                    $ondergrond  = $_REQUEST['ondergrond'];
 
-                echo '<div class="result-item"><span>Lichaamstemperatuur: </span>' . htmlspecialchars($t_rectum_c) . '°</div>';
-                echo '<div class="result-item"><span>Omgevingstemperatuur: </span>' . htmlspecialchars($t_ambient_c) . '°</div>';
+                echo '<div class="result-item"><span>Lichaamstemperatuur: </span>' . htmlspecialchars($t_rectum_c) . ' graden</div>';
+                echo '<div class="result-item"><span>Omgevingstemperatuur: </span>' . htmlspecialchars($t_ambient_c) . ' graden</div>';
                 echo '<div class="result-item"><span>Lichaamsgewicht: </span>' . htmlspecialchars($body_wt_kg) . 'kg</div>';
                 echo '<div class="result-item"><span>Lichaamsbedekking: </span>' . htmlspecialchars($cover) . '</div>';
                 echo '<div class="result-item"><span>Omgevingsfactoren: </span>' . htmlspecialchars($surfact) . '</div>';
                 echo '<div class="result-item"><span>Ondergrond: </span>' . htmlspecialchars($ondergrond) . '</div>';
                 echo '<div class="result-item"><span>Datum en tijd van berekenen: </span>' . htmlspecialchars($date . ' ' . $time) . '</div>';
 
-                $command = escapeshellcmd("python calc.py " .
+                $command = escapeshellcmd("python3 calc.py " .
                     escapeshellarg($cover) . " " .
                     escapeshellarg($surfact) . " " .
                     escapeshellarg($t_rectum_c) . " " .
