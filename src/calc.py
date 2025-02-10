@@ -196,17 +196,24 @@ class PMICalculator:
 
     def get_corrective_factor(self, cover, surfact, underlay):
         base_factor = self.factors.get(surfact, {}).get(cover, None)
+        
         if base_factor is None:
             raise ValueError(f"No correction factor available for cover '{cover}' with surface type '{surfact}'.")
+
+        # Default adjustment is 0 unless specified otherwise
+        adjustment = 0.0  
+
         if underlay == "Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt":
-            return base_factor
+            adjustment = 0.0
         elif underlay == 'Zware vulling':
-            return base_factor + (0.3 if cover in ['Een of twee dunne lagen'] else 0.1)
+            adjustment = 0.3 if cover in ['1-2 dunne lagen'] else 0.1
         elif underlay == 'Matras, dik tapijt of vloerkleed':
-            return base_factor + (0.15 if cover == 'Naakt' else 0.1)
+            adjustment = 0.15 if cover == 'Naakt' else 0.1
         elif underlay == 'Beton, steen, tegels':
-            return base_factor - (0.75 if cover == 'Naakt' else 0.2)
-        return base_factor
+            adjustment = -0.75 if cover == 'Naakt' else -0.2
+
+        return round(base_factor + adjustment, 1)  # Ensure proper rounding
+
 
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
