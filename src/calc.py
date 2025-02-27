@@ -14,7 +14,7 @@ class PMICalculator:
             40: [1.4, 1.6, 2.1, 2.5, 2.8, 3.2, 3.6, 3.9, 4.3],
             50: [1.4, 1.6, 2.0, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8],
             60: [1.4, 1.6, 1.8, 2.0, 2.4, 2.7, 2.9, 3.2, 3.4],
-            70: [1.3, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0],
+            70: [1.3, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5],
             80: [1.4, 1.6, 1.8, 2.0, 2.1, 2.3, 2.5, 2.7, 2.8],
             90: [1.4, 1.6, 1.8, 1.8, 2.0, 2.2, 2.3, 2.5, 2.6],
             100: [1.4, 1.6, 1.5, 1.8, 1.9, 2.1, 2.2, 2.3, 2.4],
@@ -40,7 +40,7 @@ class PMICalculator:
             'Droge kleding en/of bedekking, bewegende lucht': {
                 'Naakt': 0.75,
                 '1-2 dunne lagen': 0.9,
-                '1-2 dikkere lagen': 0.9,
+                '1-2 dikkere lagen': 1.2,
                 '2-3 dunne lagen': 1.2,
                 '3-4 dunne lagen': 1.3,
                 'Meerdere dunne/dikkere lagen': 1.4,
@@ -49,15 +49,15 @@ class PMICalculator:
                 'Zeer veel dikke lagen': 3.0,
             },
             'Natte kleding en/of bedekking, nat lichaamsoppervlak, stilstaande lucht': {
-                'Naakt': 0.5,
-                '1-2 dunne lagen': 0.8,
-                '1-2 dikkere lagen': 1.1,
-                '2-3 dunne lagen': 1.2,
+                'Naakt': None,
+                '1-2 dunne lagen': None,
+                '1-2 dikkere lagen': 1.1,  
+                '2-3 dunne lagen': 1.2,      
                 '3-4 dunne lagen': 1.2,
-                'Meerdere dunne/dikkere lagen': 1.2,
-                'Dik beddengoed': 1.2,
-                'Dik beddengoed plus kleding': 1.2,
-                'Zeer veel dikke lagen': 1.2,
+                'Meerdere dunne/dikkere lagen': 1.2,  # or None
+                'Dik beddengoed': None,
+                'Dik beddengoed plus kleding': None,
+                'Zeer veel dikke lagen': None,
             },
             'Natte kleding en/of bedekking, nat lichaamsoppervlak, bewegende lucht': {
                 'Naakt': 0.7,
@@ -66,31 +66,31 @@ class PMICalculator:
                 '2-3 dunne lagen': 0.9,
                 '3-4 dunne lagen': 0.9,
                 'Meerdere dunne/dikkere lagen': 0.9,
-                'Dik beddengoed': 0.9,
-                'Dik beddengoed plus kleding': 0.9,
-                'Zeer veel dikke lagen': 0.9,
+                'Dik beddengoed': None,
+                'Dik beddengoed plus kleding': None,
+                'Zeer veel dikke lagen': None,
             },
             'Stilstaand water': {
                 'Naakt': 0.5,
-                '1-2 dunne lagen': 0.7,
-                '1-2 dikkere lagen': 0.8,
-                '2-3 dunne lagen': 0.9,
-                '3-4 dunne lagen': 1.0,
-                'Meerdere dunne/dikkere lagen': 1.0,
-                'Dik beddengoed': 1.0,
-                'Dik beddengoed plus kleding': 1.0,
-                'Zeer veel dikke lagen': 1.0,
+                '1-2 dunne lagen': None,
+                '1-2 dikkere lagen': None,
+                '2-3 dunne lagen': None,
+                '3-4 dunne lagen': None,
+                'Meerdere dunne/dikkere lagen': None,
+                'Dik beddengoed': None,
+                'Dik beddengoed plus kleding': None,
+                'Zeer veel dikke lagen': None,
             },
             'Stromend water': {
                 'Naakt': 0.35,
-                '1-2 dunne lagen': 0.5,
-                '1-2 dikkere lagen': 0.7,
-                '2-3 dunne lagen': 0.8,
-                '3-4 dunne lagen': 0.9,
-                'Meerdere dunne/dikkere lagen': 1.0,
-                'Dik beddengoed': 1.0,
-                'Dik beddengoed plus kleding': 1.0,
-                'Zeer veel dikke lagen': 1.0,
+                '1-2 dunne lagen': None,
+                '1-2 dikkere lagen': None,
+                '2-3 dunne lagen': None,
+                '3-4 dunne lagen': None,
+                'Meerdere dunne/dikkere lagen': None,
+                'Dik beddengoed': None,
+                'Dik beddengoed plus kleding': None,
+                'Zeer veel dikke lagen': None,
             },
         }
 
@@ -118,21 +118,42 @@ class PMICalculator:
     def adjust_correction_factor(self, cf, body_wt_kg):
         weight = round(body_wt_kg, -1)
 
-        if weight == 70 or cf < 1.4:
+        # If weight == 70, skip table-based scaling
+        if weight == 70:
             return cf
 
         cf_row_70kg = self.correction_factors_table[70]
 
         try:
+            # 1) Try to find an exact match for cf in the 70 kg row
             index = cf_row_70kg.index(cf)
-            return self.correction_factors_table[weight][index]
+            # 2) Clamp index if it's out of range for the current weight row
+            target_row = self.correction_factors_table[weight]
+            if index >= len(target_row):
+                index = len(target_row) - 1
+            # 3) Return the factor at the clamped index
+            return target_row[index]
+
         except ValueError:
+            # No exact match in the 70 kg row -> fallback to interpolation
             lower_cf, upper_cf = self.get_nearest_factors(cf, cf_row_70kg)
             lower_index = cf_row_70kg.index(lower_cf)
             upper_index = cf_row_70kg.index(upper_cf)
-            lower_cf_weight = self.correction_factors_table[weight][lower_index]
-            upper_cf_weight = self.correction_factors_table[weight][upper_index]
-            return self.linear_interpolate(cf, lower_cf, upper_cf, lower_cf_weight, upper_cf_weight)
+
+            target_row = self.correction_factors_table[weight]
+
+            # Handle lower_index out of range
+            if lower_index >= len(target_row):
+                lower_index = len(target_row) - 1
+            # Handle upper_index out of range
+            if upper_index >= len(target_row):
+                upper_index = len(target_row) - 1
+
+            lower_cf_weight = target_row[lower_index]
+            upper_cf_weight = target_row[upper_index]
+
+            return self.linear_interpolate(cf, lower_cf, upper_cf,
+                                       lower_cf_weight, upper_cf_weight)
 
 
     def get_nearest_factors(self, target, values):
@@ -164,6 +185,8 @@ class PMICalculator:
             return "Error: Er is een hoge mate van onzekerheid door het lage lichaamsgewicht."
 
         corrective_factor = self.get_corrective_factor(cover, surfact, underlay)
+        if corrective_factor is None:
+            return "Error: Er is een hoge mate van onzekerheid."
 
         if corrective_factor:
             adjusted_cf = self.adjust_correction_factor(corrective_factor, body_wt_kg)
@@ -206,15 +229,18 @@ class PMICalculator:
         if underlay == "Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt":
             adjustment = 0.0
         elif underlay == 'Zware vulling':
-            adjustment = 0.3 if cover in ['1-2 dunne lagen'] else 0.1
+            adjustment = 0.3 if cover in ['Naakt', '1-2 dunne lagen'] else 0.1
         elif underlay == 'Matras, dik tapijt of vloerkleed':
             adjustment = 0.15 if cover == 'Naakt' else 0.1
         elif underlay == 'Beton, steen, tegels':
-            adjustment = -0.75 if cover == 'Naakt' else -0.2
+            if cover == 'Naakt':
+                adjustment = -0.75
+            elif cover in ['Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen']:
+                adjustment = -0.1
+            else:
+                adjustment = -0.2
 
         return round(base_factor + adjustment, 1)  # Ensure proper rounding
-
-
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
         category1, category2, category3 = self.get_weight_category(body_wt_kg)
