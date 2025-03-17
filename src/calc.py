@@ -14,7 +14,7 @@ class PMICalculator:
             40: [1.4, 1.6, 2.1, 2.5, 2.8, 3.2, 3.6, 3.9, 4.3],
             50: [1.4, 1.6, 2.0, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8],
             60: [1.4, 1.6, 1.8, 2.0, 2.4, 2.7, 2.9, 3.2, 3.4],
-            70: [1.3, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5],
+            70: [1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0],
             80: [1.4, 1.6, 1.8, 2.0, 2.1, 2.3, 2.5, 2.7, 2.8],
             90: [1.4, 1.6, 1.8, 1.8, 2.0, 2.2, 2.3, 2.5, 2.6],
             100: [1.4, 1.6, 1.5, 1.8, 1.9, 2.1, 2.2, 2.3, 2.4],
@@ -22,7 +22,7 @@ class PMICalculator:
             120: [1.3, 1.4, 1.6, 1.6, 1.7, 1.9, 2.0, 2.0, 2.1],
             130: [1.2, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.9, 2.0],
             140: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.8, 1.9],
-            150: [1.2, 1.3, 1.4, 1.5, 1.6, 1.6, 1.7, 1.7, 1.9],
+            150: [1.2, 1.3, 1.4, 1.5, 1.6, 1.6, 1.7, 1.7, 1.8],
         }
 
         self.factors = {
@@ -305,15 +305,20 @@ if __name__ == '__main__':
     if isinstance(pmi, str):
         print(pmi)
     else:
+        # Compute the weight-adjusted correction factor
+        base_factor = calc.get_corrective_factor(cover, surfact, underlay)
+        adjusted_cf = calc.adjust_correction_factor(base_factor, body_wt_kg)
         uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, pmi, cover, surfact)
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
             print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} minuten geleden)")
             print("Met onzekerheidsbereik: {} tot {}".format(interval[2], interval[1]))
-            B_value = -1.2815 * (calc.get_corrective_factor(cover, surfact, underlay) * body_wt_kg) ** -0.625 + 0.0284
+            B_value = -1.2815 * (adjusted_cf * body_wt_kg) ** -0.625 + 0.0284
             print(f"B: {B_value}")
             print(f"T_R: {t_rectum_c}")
             print(f"T_O: {t_ambient_c}")
-            print(f"Correctiefactor: {calc.get_corrective_factor(cover, surfact, underlay)}")
+            # Print the adjusted correction factor instead of the unadjusted one
+            print(f"Correctiefactor: {adjusted_cf}")
             print(f"Lichaamsgewicht: {body_wt_kg}")
             print(f"Formula: {'below' if t_rectum_c <= 23 else 'above'}")
+
