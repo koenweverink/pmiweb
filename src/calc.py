@@ -35,7 +35,7 @@ class PMICalculator:
                 'Meerdere dunne/dikkere lagen': 1.4,
                 'Dik beddengoed': 1.8,
                 'Dik beddengoed plus kleding': 2.4,
-                'Zeer veel dikke lagen': 3.0,
+                'Zeer veel dikke lagen': 2.8,
             },
             'Droge kleding en/of bedekking, bewegende lucht': {
                 'Naakt': 0.75,
@@ -46,7 +46,7 @@ class PMICalculator:
                 'Meerdere dunne/dikkere lagen': 1.4,
                 'Dik beddengoed': 1.8,
                 'Dik beddengoed plus kleding': 2.4,
-                'Zeer veel dikke lagen': 3.0,
+                'Zeer veel dikke lagen': 2.8,
             },
             'Natte kleding en/of bedekking, nat lichaamsoppervlak, stilstaande lucht': {
                 'Naakt': None,
@@ -187,6 +187,10 @@ class PMICalculator:
         corrective_factor = self.get_corrective_factor(cover, surfact, underlay)
         if corrective_factor is None:
             return "Error: Er is een hoge mate van onzekerheid."
+        
+        corrective_factor = self.get_corrective_factor(cover, surfact, underlay)
+        if isinstance(corrective_factor, str) and corrective_factor.startswith("Error:"):
+            return corrective_factor  # Propagate the error message up
 
         if corrective_factor:
             adjusted_cf = self.adjust_correction_factor(corrective_factor, body_wt_kg)
@@ -207,7 +211,10 @@ class PMICalculator:
 
         uncertainty = self.get_uncertainty(t_ambient_c, body_wt_kg, best_time, cover, surfact)
         if uncertainty == 69:
-            return "Error: Er is een hoge mate van onzekerheid."
+            return ("Error: De gekozen omgevingsfactoren en de bijbehorende correctiefactor is erg hoog. "
+            "Dit kan betekenen dat het lichaam waarschijnlijk veel langzamer is afgekoeld dan normaal. "
+            "Interpreteer de uitkomsten met terughoudendheid en voorzichtigheid, of kies ervoor de uitkomsten niet te gebruiken. "
+            "Mocht de berekening uitkomen op een lange tijd sinds het overlijden, meer dan 30 uur, dan is het aan te raden andere methoden te gebruiken voor een inschatting van het tijdstip van overlijden.")
 
         return int(round(best_time * 60))  # convert hours back to minutes
 
@@ -221,8 +228,8 @@ class PMICalculator:
         base_factor = self.factors.get(surfact, {}).get(cover, None)
         
         if base_factor is None:
-            raise ValueError(f"No correction factor available for cover '{cover}' with surface type '{surfact}'.")
-
+            return "Error: Voor de aangegeven omgevingsfactoren is in de wetenschappelijke literatuur geen correctiefactor bekend. Er kan om deze reden geen berekening worden uitgevoerd."
+        
         # Default adjustment is 0 unless specified otherwise
         adjustment = 0.0  
 
@@ -235,15 +242,23 @@ class PMICalculator:
         elif underlay == 'Beton, steen, tegels':
             if cover == 'Naakt':
                 adjustment = -0.75
-            elif cover in ['Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen']:
+            elif cover in ['Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen', 'Meerdere dunne/dikkere lagen']:
                 adjustment = -0.1
             else:
                 adjustment = -0.2
 
-        return round(base_factor + adjustment, 1)  # Ensure proper rounding
+        return base_factor + adjustment
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
+        if best_time > 30:
+            return 69
+        
         category1, category2, category3 = self.get_weight_category(body_wt_kg)
+
+        # For these cover types, increase the threshold to allow a higher best_time
+        if cover in ['Dik beddengoed plus kleding', 'Zeer veel dikke lagen']:
+            category3 *= 2  # Increase threshold by 20% (adjust factor as needed)
+
         if t_ambient_c > 23 and best_time >= category3:
             return 69
         if best_time >= category3:
