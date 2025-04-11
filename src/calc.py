@@ -122,6 +122,9 @@ class PMICalculator:
         if weight == 70:
             return cf
 
+        if cf < 1.4:
+            return cf
+        
         cf_row_70kg = self.correction_factors_table[70]
 
         try:
@@ -300,7 +303,7 @@ class PMICalculator:
         try:
             datetime_object = datetime.datetime.strptime(date + ' ' + time, '%Y-%m-%d %H:%M')
             pmi_delta = datetime.timedelta(minutes=pmi)
-            uncertainty_delta = datetime.timedelta(minutes=uncertainty)
+            uncertainty_delta = datetime.timedelta(hours=uncertainty)
             time_calculated = datetime_object - pmi_delta
             time_plus_uncertainty = time_calculated + uncertainty_delta
             time_minus_uncertainty = time_calculated - uncertainty_delta

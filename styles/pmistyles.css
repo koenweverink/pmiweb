@@ -16,10 +16,6 @@ body {
     width: 100%;
     max-width: 400px;
 }
-h1 {
-    color: #333;
-    text-align: center;
-}
 form {
     display: flex;
     flex-direction: column;
