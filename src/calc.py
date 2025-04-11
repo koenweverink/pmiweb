@@ -211,7 +211,7 @@ class PMICalculator:
 
         uncertainty = self.get_uncertainty(t_ambient_c, body_wt_kg, best_time, cover, surfact)
         if uncertainty == 69:
-            return ("Error: De gekozen omgevingsfactoren en de bijbehorende correctiefactor is erg hoog. "
+            return ("Error: De temperatuurverhouding tussen lichaamsgewicht en omgeving valt buiten het toepasbare bereik van de methode. De berekening kan niet worden uitgevoerd. "
             "Dit kan betekenen dat het lichaam waarschijnlijk veel langzamer is afgekoeld dan normaal. "
             "Interpreteer de uitkomsten met terughoudendheid en voorzichtigheid, of kies ervoor de uitkomsten niet te gebruiken. "
             "Mocht de berekening uitkomen op een lange tijd sinds het overlijden, meer dan 30 uur, dan is het aan te raden andere methoden te gebruiken voor een inschatting van het tijdstip van overlijden.")
@@ -225,6 +225,12 @@ class PMICalculator:
             return 1.11 * math.exp(bigB * f) - 0.11 * math.exp(10 * bigB * f)
 
     def get_corrective_factor(self, cover, surfact, underlay):
+        # Check if the body is in water (i.e. the underlay indicates water)
+        if surfact in ['Stilstaand water', 'Stromend water'] and underlay != 'Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt':
+            return ("Error: Lichamen in water laten zich niet verenigen met een ondergrond. "
+                    "De correctiefactor kan niet op basis van deze twee voorwaarden zinnig worden berekend. "
+                    "Het is of raadzaam om dit als waarschuwing op te nemen als men een andere ondergrond selecteert dan \"Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt\".")
+    
         base_factor = self.factors.get(surfact, {}).get(cover, None)
         
         if base_factor is None:
@@ -234,22 +240,31 @@ class PMICalculator:
         adjustment = 0.0  
 
         if underlay == "Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt":
-            adjustment = 0.0
-        elif underlay == 'Zware vulling':
-            adjustment = 0.3 if cover in ['Naakt', '1-2 dunne lagen'] else 0.1
+            if cover in ['Meerdere dunne/dikkere lagen', 'Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen']:
+                adjustment = 0.1
+            elif cover in ['1-2 dunne lagen']:
+                adjustment = 0.3
+            elif cover == 'Naakt':
+                base_factor = 1.3 
+
         elif underlay == 'Matras, dik tapijt of vloerkleed':
-            adjustment = 0.15 if cover == 'Naakt' else 0.1
-        elif underlay == 'Beton, steen, tegels':
             if cover == 'Naakt':
-                adjustment = -0.75
-            elif cover in ['Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen', 'Meerdere dunne/dikkere lagen']:
-                adjustment = -0.1
+                base_factor = 1.15
             else:
+                adjustment = 0.1
+
+        elif underlay == 'Beton, steen, tegels':
+            if cover in ['Meerdere dunne/dikkere lagen', 'Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen']:
+                adjustment = -0.1
+            elif cover in ['1-2 dunne lagen']:
                 adjustment = -0.2
+            elif cover == 'Naakt':
+                base_factor = 0.75
 
         return base_factor + adjustment
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
+        print("best_time1: ", best_time)
         if best_time > 30:
             return 69
         
@@ -286,7 +301,6 @@ class PMICalculator:
             datetime_object = datetime.datetime.strptime(date + ' ' + time, '%Y-%m-%d %H:%M')
             pmi_delta = datetime.timedelta(minutes=pmi)
             uncertainty_delta = datetime.timedelta(minutes=uncertainty)
-
             time_calculated = datetime_object - pmi_delta
             time_plus_uncertainty = time_calculated + uncertainty_delta
             time_minus_uncertainty = time_calculated - uncertainty_delta
@@ -323,7 +337,7 @@ if __name__ == '__main__':
         # Compute the weight-adjusted correction factor
         base_factor = calc.get_corrective_factor(cover, surfact, underlay)
         adjusted_cf = calc.adjust_correction_factor(base_factor, body_wt_kg)
-        uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, pmi, cover, surfact)
+        uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, (pmi/60), cover, surfact)
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
             print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} minuten geleden)")
