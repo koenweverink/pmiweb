@@ -117,14 +117,17 @@
                     $B = $TR = $TO = $f = $M = $formula = null;
                     foreach ($outputLines as $line) {
                         if (trim($line)) {
+                            // Check if the line is an error message
                             if (strpos($line, 'Error:') !== false) {
+                                echo "<p>" . htmlspecialchars($line) . "</p>";
                                 $isError = true;
-                                echo '<div class="result-item">' . htmlspecialchars($line) . '</div>';
                             }
+                            
+                            // Also, extract other numerical values if necessary (B, T_R, etc.)
                             if (!$isError) {
                                 if (strpos($line, 'B:') !== false) {
                                     $B = floatval(substr($line, 3));
-                                    $B_rounded = round($B, 3); // Round B to 3 decimal places
+                                    $B_rounded = round($B, 3);
                                 } elseif (strpos($line, 'T_R:') !== false) {
                                     $TR = floatval(substr($line, 5));
                                 } elseif (strpos($line, 'T_O:') !== false) {
@@ -132,6 +135,15 @@
                                 } elseif (strpos($line, 'Correctiefactor:') !== false) {
                                     $f = floatval(substr($line, 17));
                                     echo '<div class="result-item"><span>Gebruikte correctiefactor: </span>' . htmlspecialchars($f) . '</div>';
+                                } elseif (strpos($line, 'Geschatte tijd van overlijden:') !== false) {
+                                    $estimated_time = trim(substr($line, 30));
+                                    echo '<div class="result-item"><span>Geschatte tijd van overlijden: </span>' . htmlspecialchars($estimated_time) . '</div>';
+                                } elseif (strpos($line, 'Onzekerheidsbereik:') !== false) {
+                                    $uncertainty_range = trim(substr($line, 20));
+                                    echo '<div class="result-item"><span>Onzekerheid: </span>' . htmlspecialchars($uncertainty_range) . '</div>';
+                                } elseif (strpos($line, 'Met onzekerheidsbereik:') !== false) {
+                                    $uncertainty = trim(substr($line, 24));
+                                    echo '<div class="result-item"><span>Onzekerheidsbereik: </span>' . htmlspecialchars($uncertainty) . '</div>';
                                 } elseif (strpos($line, 'Lichaamsgewicht:') !== false) {
                                     $M = floatval(substr($line, 16));
                                 } elseif (strpos($line, 'Formula:') !== false) {
@@ -139,7 +151,7 @@
                                 }
                             }
                         }
-                    }
+                    }                    
 
                     if (!$isError && $B !== null && $TR !== null && $TO !== null && $f !== null && $M !== null && $formula !== null) {
                         echo '<div class="equation">';

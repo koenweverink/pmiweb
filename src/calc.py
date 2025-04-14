@@ -119,10 +119,7 @@ class PMICalculator:
         weight = round(body_wt_kg, -1)
 
         # If weight == 70, skip table-based scaling
-        if weight == 70:
-            return cf
-
-        if cf < 1.4:
+        if weight == 70 or cf < 1.4:
             return cf
         
         cf_row_70kg = self.correction_factors_table[70]
@@ -235,6 +232,7 @@ class PMICalculator:
                     "Het is of raadzaam om dit als waarschuwing op te nemen als men een andere ondergrond selecteert dan \"Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt\".")
     
         base_factor = self.factors.get(surfact, {}).get(cover, None)
+        print(f"DEBUG: cover='{cover}', surfact='{surfact}', base_factor={base_factor}")
         
         if base_factor is None:
             return "Error: Voor de aangegeven omgevingsfactoren is in de wetenschappelijke literatuur geen correctiefactor bekend. Er kan om deze reden geen berekening worden uitgevoerd."
@@ -243,6 +241,9 @@ class PMICalculator:
         adjustment = 0.0  
 
         if underlay == "Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt":
+            pass
+
+        if underlay == 'Zware vulling':
             if cover in ['Meerdere dunne/dikkere lagen', 'Dik beddengoed', 'Dik beddengoed plus kleding', 'Zeer veel dikke lagen']:
                 adjustment = 0.1
             elif cover in ['1-2 dunne lagen']:
@@ -264,6 +265,7 @@ class PMICalculator:
             elif cover == 'Naakt':
                 base_factor = 0.75
 
+        print("DEBUG: final factor before adjust_correction_factor =", base_factor)
         return base_factor + adjustment
 
     def get_uncertainty(self, t_ambient_c, body_wt_kg, best_time, cover, surFact):
@@ -344,6 +346,7 @@ if __name__ == '__main__':
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
             print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} minuten geleden)")
+            print(f"Onzekerheidsbereik: {uncertainty} uur")
             print("Met onzekerheidsbereik: {} tot {}".format(interval[2], interval[1]))
             B_value = -1.2815 * (adjusted_cf * body_wt_kg) ** -0.625 + 0.0284
             print(f"B: {B_value}")
