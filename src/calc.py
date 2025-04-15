@@ -345,7 +345,8 @@ if __name__ == '__main__':
         uncertainty = calc.get_uncertainty(t_ambient_c, body_wt_kg, (pmi/60), cover, surfact)
         interval = calc.get_times(pmi, uncertainty, date, time)
         if interval[0]:
-            print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi} minuten geleden)")
+            pmi = '{:02d} uur en {:02d} minuten geleden'.format(*divmod(pmi, 60))
+            print(f"Geschatte tijd van overlijden: {interval[0]} ({pmi})")
             print(f"Onzekerheidsbereik: {uncertainty} uur")
             print("Met onzekerheidsbereik: {} tot {}".format(interval[2], interval[1]))
             B_value = -1.2815 * (adjusted_cf * body_wt_kg) ** -0.625 + 0.0284

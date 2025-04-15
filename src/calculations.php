@@ -100,7 +100,7 @@
                 echo '<div class="result-item"><span>Ondergrond: </span>' . htmlspecialchars($ondergrond) . '</div>';
                 echo '<div class="result-item"><span>Datum en tijd van berekenen: </span>' . htmlspecialchars($date . ' ' . $time) . '</div>';
 
-                $command = escapeshellcmd("python3 calc.py " .
+                $command = escapeshellcmd("python calc.py " .
                     escapeshellarg($cover) . " " .
                     escapeshellarg($surfact) . " " .
                     escapeshellarg($t_rectum_c) . " " .

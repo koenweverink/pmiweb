@@ -3,6 +3,11 @@
 <head>
     <title>PMI Calculator</title>
     <link rel="stylesheet" type="text/css" href="../styles/pmistyles.css">
+    <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96"/>
+    <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg"/>
+    <link rel="shortcut icon" href="../favicon/favicon.ico"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png"/>
+    <link rel="manifest" href="../favicon/site.webmanifest"/>
     <style>
         /* Override the body's flexbox styles to prevent interference */
         body {
@@ -112,13 +117,13 @@
         <div class="form-column">
             <form action="" method="post">
                 Lichaamstemperatuur: 
-                <input type="number" name="number1" value="<?php echo isset($_POST['number1']) ? $_POST['number1'] : ''; ?>"><br><br>
+                <input type="number" step="0.1" name="number1" value="<?php echo isset($_POST['number1']) ? $_POST['number1'] : ''; ?>"><br><br>
 
                 Omgevingstemperatuur: 
-                <input type="number" name="number2" value="<?php echo isset($_POST['number2']) ? $_POST['number2'] : ''; ?>"><br><br>
+                <input type="number" step="0.1" name="number2" value="<?php echo isset($_POST['number2']) ? $_POST['number2'] : ''; ?>"><br><br>
 
                 Lichaamsgewicht: 
-                <input type="number" name="number3" value="<?php echo isset($_POST['number3']) ? $_POST['number3'] : ''; ?>"><br><br>
+                <input type="number" step="0.1" name="number3" value="<?php echo isset($_POST['number3']) ? $_POST['number3'] : ''; ?>"><br><br>
 
                 Lichaamsbedekking: 
                 <select name="dropdown1">
@@ -146,9 +151,9 @@
                 Ondergrond:
                 <select name="ondergrond">
                     <option value="Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt') ? 'selected' : ''; ?>>Willekeurig: Vloer binnenshuis, grasveld, droge aarde, asfalt</option>
-                    <option value="Zware vulling" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Zware vulling') ? 'selected' : ''; ?>>Zware vulling</option>
-                    <option value="Matras, dik tapijt of vloerkleed" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Matras, dik tapijt of vloerkleed') ? 'selected' : ''; ?>>Matras, dik tapijt of vloerkleed</option>
-                    <option value="Beton, steen, tegels" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Beton, steen, tegels') ? 'selected' : ''; ?>>Beton, steen, tegels</option>
+                    <option value="Zware vulling" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Zware vulling') ? 'selected' : ''; ?>>Isolerend: Zware vulling</option>
+                    <option value="Matras, dik tapijt of vloerkleed" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Matras, dik tapijt of vloerkleed') ? 'selected' : ''; ?>>Isolerend: Matras, dik tapijt of vloerkleed</option>
+                    <option value="Beton, steen, tegels" <?php echo (isset($_POST['ondergrond']) && $_POST['ondergrond'] == 'Beton, steen, tegels') ? 'selected' : ''; ?>>Warmtegeleidend: Beton, steen, tegels</option>
                 </select><br><br>
 
                 Datum: 
@@ -163,6 +168,7 @@
 
         <!-- Right column: warning text block -->
         <div class="warning-column">
+            <img src="pmicalculator.jpg"  alt="pmicalcjpg" class="center" width="120" height="120" />
             <h3>Het model kan niet worden toegepast bij de volgende omstandigheden:</h3>
             <ul>
                 <li>Vindplaats stoffelijk overschot is niet de plaats van overlijden</li>
@@ -172,6 +178,8 @@
                 <li>Verdenking op hypothermie of (maligne) hyperthermie bij overlijden</li>
                 <li>De Henssge correctiefactor voor het lichaamsgewicht kan niet worden ingeschat</li>
                 <li>Sterke verandering van de omgevingstemperatuur (bijvoorbeeld ramen opengezet, extreme weersveranderingen in korte tijd)</li>
+                <br><br>
+                <li> De PMI Calculator bepaalt op basis van de ingevoerde omstandigheden en het gewicht de bijbehorende correctiefactor volgens de <a href=/Correctiefactoren%20gebruikt%20in%20PMI%20calculator.pdf target=\"_blank\" >tabellen 1 t/m 3</a>
             </ul>
         </div>
     </div>
@@ -205,7 +213,7 @@
                         echo "Vul alle velden in.";
                     } else {
                         $command = escapeshellcmd(
-                            "python3 calc.py " .
+                            "python calc.py " .
                             escapeshellarg($dropdown1) . " " .
                             escapeshellarg($dropdown2) . " " .
                             escapeshellarg($number1) . " " .
