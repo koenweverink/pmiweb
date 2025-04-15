@@ -213,7 +213,7 @@
                         echo "Vul alle velden in.";
                     } else {
                         $command = escapeshellcmd(
-                            "python calc.py " .
+                            "python3 calc.py " .
                             escapeshellarg($dropdown1) . " " .
                             escapeshellarg($dropdown2) . " " .
                             escapeshellarg($number1) . " " .
