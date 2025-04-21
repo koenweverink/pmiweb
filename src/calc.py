@@ -289,11 +289,18 @@ class PMICalculator:
             return self.Category3245(cover, surFact)
         return 2.8
 
-    def Category4570(self, cover, surFact):
-        return 7 if cover != 'Naked' and surFact == 'StillAirBodyDry' else 4.5
+    def Category4570(self, cover, surfact):
+        # Middle band (category2 ≤ t < category3)
+        # Check for Naakt + stilstaande lucht
+        if cover == 'Naakt' and surfact == 'Droge kleding en/of bedekking, stilstaande lucht':
+            return 4.5
+        return 7.0
 
-    def Category3245(self, cover, surFact):
-        return 4.5 if cover != 'Naked' and surFact == 'StillAirBodyDry' else 3.2
+    def Category3245(self, cover, surfact):
+        # Lower band (category1 ≤ t < category2)
+        if cover == 'Naakt' and surfact == 'Droge kleding en/of bedekking, stilstaande lucht':
+            return 3.2
+        return 4.5
 
     def get_weight_category(self, wt):
         for weight, times in sorted((k, v) for k, v in self.weight_thresholds.items() if isinstance(k, int)):
