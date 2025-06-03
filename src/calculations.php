@@ -38,7 +38,7 @@
             font-weight: bold;
             color: #333;
         }
-        button {
+        button, .download-button {
             margin-top: 10px;
             padding: 10px 20px;
             font-size: 16px;
@@ -48,8 +48,10 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
         }
-        button:hover {
+        button:hover, .download-button:hover {
             background-color: #45a049;
         }
         h1 {
@@ -73,57 +75,56 @@
     </style>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script type="text/javascript" id="MathJax-script" async
-    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js">
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js">
     </script>
-
 </head>
 <body>
     <div class="container">
         <h1>Gebruikte Variabelen en Berekeningen</h1>
         <div class="results-container">
             <?php
-                if (isset($_REQUEST['cover'], $_REQUEST['surfact'], $_REQUEST['t_rectum_c'], $_REQUEST['t_ambient_c'], $_REQUEST['body_wt_kg'], $_REQUEST['date'], $_REQUEST['time'], $_REQUEST['ondergrond'])) {
-                    $cover       = $_REQUEST['cover'];
-                    $surfact     = $_REQUEST['surfact'];
-                    $t_rectum_c  = $_REQUEST['t_rectum_c'];
-                    $t_ambient_c = $_REQUEST['t_ambient_c'];
-                    $body_wt_kg  = $_REQUEST['body_wt_kg'];
-                    $date        = $_REQUEST['date'];
-                    $time        = $_REQUEST['time'];
-                    $ondergrond  = $_REQUEST['ondergrond'];
+                if (isset($_GET['cover'], $_GET['surfact'], $_GET['t_rectum_c'], $_GET['t_ambient_c'], $_GET['body_wt_kg'], $_GET['date'], $_GET['time'], $_GET['ondergrond'])) {
+                    $cover       = $_GET['cover'];
+                    $surfact     = $_GET['surfact'];
+                    $t_rectum_c  = $_GET['t_rectum_c'];
+                    $t_ambient_c = $_GET['t_ambient_c'];
+                    $body_wt_kg  = $_GET['body_wt_kg'];
+                    $date        = $_GET['date'];
+                    $time        = $_GET['time'];
+                    $ondergrond  = $_GET['ondergrond'];
 
-                echo '<div class="result-item"><span>Lichaamstemperatuur: </span>' . htmlspecialchars($t_rectum_c) . ' graden</div>';
-                echo '<div class="result-item"><span>Omgevingstemperatuur: </span>' . htmlspecialchars($t_ambient_c) . ' graden</div>';
-                echo '<div class="result-item"><span>Lichaamsgewicht: </span>' . htmlspecialchars($body_wt_kg) . 'kg</div>';
-                echo '<div class="result-item"><span>Lichaamsbedekking: </span>' . htmlspecialchars($cover) . '</div>';
-                echo '<div class="result-item"><span>Omgevingsfactoren: </span>' . htmlspecialchars($surfact) . '</div>';
-                echo '<div class="result-item"><span>Ondergrond: </span>' . htmlspecialchars($ondergrond) . '</div>';
-                echo '<div class="result-item"><span>Datum en tijd van berekenen: </span>' . htmlspecialchars($date . ' ' . $time) . '</div>';
+                    echo '<div class="result-item"><span>Lichaamstemperatuur: </span>' . htmlspecialchars($t_rectum_c) . ' °C</div>';
+                    echo '<div class="result-item"><span>Omgevingstemperatuur: </span>' . htmlspecialchars($t_ambient_c) . ' °C</div>';
+                    echo '<div class="result-item"><span>Lichaamsgewicht: </span>' . htmlspecialchars($body_wt_kg) . ' kg</div>';
+                    echo '<div class="result-item"><span>Lichaamsbedekking: </span>' . htmlspecialchars($cover) . '</div>';
+                    echo '<div class="result-item"><span>Omgevingsfactoren: </span>' . htmlspecialchars($surfact) . '</div>';
+                    echo '<div class="result-item"><span>Ondergrond: </span>' . htmlspecialchars($ondergrond) . '</div>';
+                    echo '<div class="result-item"><span>Datum en tijd van berekenen: </span>' . htmlspecialchars($date . ' ' . $time) . '</div>';
 
-                $command = escapeshellcmd("python3 calc.py " .
-                    escapeshellarg($cover) . " " .
-                    escapeshellarg($surfact) . " " .
-                    escapeshellarg($t_rectum_c) . " " .
-                    escapeshellarg($t_ambient_c) . " " .
-                    escapeshellarg($body_wt_kg) . " " .
-                    escapeshellarg($date) . " " .
-                    escapeshellarg($time) . " " .
-                    escapeshellarg($ondergrond));
-                    $output = shell_exec($command);
+                    $cmd = 'python3 ' . escapeshellarg(__DIR__ . '/calc.py') . ' ' 
+                         . escapeshellarg($cover) . ' ' 
+                         . escapeshellarg($surfact) . ' ' 
+                         . escapeshellarg($t_rectum_c) . ' ' 
+                         . escapeshellarg($t_ambient_c) . ' ' 
+                         . escapeshellarg($body_wt_kg) . ' ' 
+                         . escapeshellarg($date) . ' ' 
+                         . escapeshellarg($time) . ' ' 
+                         . escapeshellarg($ondergrond);
+                    $output = shell_exec($cmd);
 
-                if (!empty($output)) {
-                    $outputLines = explode("\n", $output);
-                    $isError = false;
-                    $B = $TR = $TO = $f = $M = $formula = null;
-                    foreach ($outputLines as $line) {
-                        if (trim($line)) {
-                            // Check if the line is an error message
+                    if (!empty($output)) {
+                        $lines = explode("\n", trim($output));
+                        $isError = false;
+                        $B = $TR = $TO = $f = $M = $formula = null;
+
+                        foreach ($lines as $line) {
+                            if (trim($line) === '') continue;
+
                             if (strpos($line, 'Error:') !== false) {
-                                echo "<p>" . htmlspecialchars($line) . "</p>";
+                                echo '<p>' . htmlspecialchars($line) . '</p>';
                                 $isError = true;
                             }
-                            
-                            // Also, extract other numerical values if necessary (B, T_R, etc.)
+
                             if (!$isError) {
                                 if (strpos($line, 'B:') !== false) {
                                     $B = floatval(substr($line, 3));
@@ -135,15 +136,6 @@
                                 } elseif (strpos($line, 'Correctiefactor:') !== false) {
                                     $f = floatval(substr($line, 17));
                                     echo '<div class="result-item"><span>Gebruikte correctiefactor: </span>' . htmlspecialchars($f) . '</div>';
-                                } elseif (strpos($line, 'Geschatte tijd van overlijden:') !== false) {
-                                    $estimated_time = trim(substr($line, 30));
-                                    echo '<div class="result-item"><span>Geschatte tijd van overlijden: </span>' . htmlspecialchars($estimated_time) . '</div>';
-                                } elseif (strpos($line, 'Onzekerheidsbereik:') !== false) {
-                                    $uncertainty_range = trim(substr($line, 20));
-                                    echo '<div class="result-item"><span>Onzekerheid: </span>' . htmlspecialchars($uncertainty_range) . '</div>';
-                                } elseif (strpos($line, 'Met onzekerheidsbereik:') !== false) {
-                                    $uncertainty = trim(substr($line, 24));
-                                    echo '<div class="result-item"><span>Onzekerheidsbereik: </span>' . htmlspecialchars($uncertainty) . '</div>';
                                 } elseif (strpos($line, 'Lichaamsgewicht:') !== false) {
                                     $M = floatval(substr($line, 16));
                                 } elseif (strpos($line, 'Formula:') !== false) {
@@ -151,42 +143,95 @@
                                 }
                             }
                         }
-                    }                    
 
-                    if (!$isError && $B !== null && $TR !== null && $TO !== null && $f !== null && $M !== null && $formula !== null) {
-                        echo '<div class="equation">';
-                        echo '<span><b>Berekening B:</b></span>';
-                        echo '<span>\\( B = 1.2815 \cdot (f \cdot M)^{-0.625} + 0.0284 \\)</span>';
-                        echo '<span>\\( B = 1.2815 \cdot (' . htmlspecialchars($f) . ' \cdot ' . htmlspecialchars($M) . ')^{-0.625} + 0.0284 \\)</span>';
-                        echo '</div>';
+                        if (!$isError && $B !== null && $TR !== null && $TO !== null && $f !== null && $M !== null && $formula !== null) {
+                            echo '<div class="equation">';
+                            echo '<span><b>Berekening B:</b></span>';
+                            echo '<span>\\( B = 1.2815 \cdot (f \cdot M)^{-0.625} + 0.0284 \\)</span>';
+                            echo '<span>\\( B = 1.2815 \cdot (' . htmlspecialchars($f) . ' \cdot ' . htmlspecialchars($M) . ')^{-0.625} + 0.0284 \\)</span>';
+                            echo '</div>';
 
-                        echo '<div class="equation">';
-                        echo '<span><b>Berekening PMI:</b></span>';
-                        if ($formula == "below") {
-                            echo '<span>\\( \\frac{{T_R - T_O}}{{37.2 - T_O}} = 1.25e^{{B \cdot t}} - 0.25e^{{5 \cdot B \cdot t}} \\)</span>';
-                            echo '<span>\\( \\frac{{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}}{{37.2 - ' . htmlspecialchars($TO) . '}} = 1.25e^{' . htmlspecialchars($B_rounded) . ' \cdot t} - 0.25e^{' . htmlspecialchars(5*$B_rounded) . ' \cdot t} \\)</span>';
-                        } else {
-                            echo '<span>\\( \\frac{{T_R - T_O}}{{37.2 - T_O}} = 1.11e^{{B \cdot t}} - 0.11e^{{10 \cdot B \cdot t}} \\)</span>';
-                            echo '<span>\\( \\frac{{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}}{{37.2 - ' . htmlspecialchars($TO) . '}} = 1.11e^{' . htmlspecialchars($B_rounded) . ' \cdot t} - 0.11e^{' . htmlspecialchars(10*$B_rounded) . ' \cdot t} \\)</span>';
+                            echo '<div class="equation">';
+                            echo '<span><b>Berekening PMI:</b></span>';
+                            if ($formula == "below") {
+                                echo '<span>\\( \frac{T_R - T_O}{37.2 - T_O} = 1.25\,e^{B\,t} - 0.25\,e^{5\,B\,t} \\)</span>';
+                                echo '<span>\\( \frac{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}{37.2 - ' . htmlspecialchars($TO) . '} = 1.25\,e^{' . htmlspecialchars($B_rounded) . '\,t} - 0.25\,e^{' . htmlspecialchars(5 * $B_rounded) . '\,t} \\)</span>';
+                            } else {
+                                echo '<span>\\( \frac{T_R - T_O}{37.2 - T_O} = 1.11\,e^{B\,t} - 0.11\,e^{10\,B\,t} \\)</span>';
+                                echo '<span>\\( \frac{' . htmlspecialchars($TR) . ' - ' . htmlspecialchars($TO) . '}{37.2 - ' . htmlspecialchars($TO) . '} = 1.11\,e^{' . htmlspecialchars($B_rounded) . '\,t} - 0.11\,e^{' . htmlspecialchars(10 * $B_rounded) . '\,t} \\)</span>';
+                            }
+                            echo '</div>';
                         }
-                        echo '</div>';
+                    } else {
+                        echo "<div class='result-item'>Geen resultaten om weer te geven.</div>";
                     }
                 } else {
-                    echo "<div class='result-item'>Geen resultaten om weer te geven.</div>";
+                    echo "<div class='result-item'>Ontbrekende gegevens om de berekeningen te tonen.</div>";
                 }
-            } else {
-                echo "<div class='result-item'>Ontbrekende gegevens om de berekeningen te tonen.</div>";
-            }
             ?>
         </div>
+
+        <?php if (isset($output) && !empty($output) && !$isError): ?>
+            <?php
+                $qs = http_build_query([
+                    'cover'       => $cover,
+                    'surfact'     => $surfact,
+                    't_rectum_c'  => $t_rectum_c,
+                    't_ambient_c' => $t_ambient_c,
+                    'body_wt_kg'  => $body_wt_kg,
+                    'date'        => $date,
+                    'time'        => $time,
+                    'ondergrond'  => $ondergrond
+                ]);
+            ?>
+            <a
+                href="export.php?<?php echo htmlspecialchars($qs); ?>"
+                class="download-button"
+            >Download PDF</a>
+
+            <div style="margin-top:10px;">
+                <input
+                    type="email"
+                    name="sendTo"
+                    id="exportEmail"
+                    placeholder="Uw e-mailadres"
+                    style="padding:8px; width:200px;"
+                >
+                &nbsp;
+                <button
+                    id="btnEmailPdf"
+                    data-qs="<?php echo htmlspecialchars($qs); ?>"
+                    class="download-button"
+                >Opslaan &amp; E-mail PDF</button>
+            </div>
+        <?php endif; ?>
+
         <button onclick="window.history.back()">Terug</button>
     </div>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof MathJax !== 'undefined') {
-                MathJax.typesetPromise();
-            }
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof MathJax !== 'undefined') {
+            MathJax.typesetPromise();
+        }
+
+        const btnEmail = document.getElementById('btnEmailPdf');
+        if (btnEmail) {
+            btnEmail.addEventListener('click', function(event) {
+                event.preventDefault();
+                const baseQs = btnEmail.getAttribute('data-qs') || '';
+                const emailInput = document.getElementById('exportEmail').value.trim();
+                if (!emailInput) {
+                    alert('Vul alstublieft uw e-mailadres in om de PDF per e-mail te ontvangen.');
+                    return;
+                }
+                const fullQs = baseQs
+                    + '&action=email'
+                    + '&sendTo=' + encodeURIComponent(emailInput);
+                window.location.href = 'export.php?' + fullQs;
+            });
+        }
+    });
     </script>
 </body>
 </html>
